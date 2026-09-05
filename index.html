@@ -175,9 +175,15 @@ a{color:var(--grow)}
 
   <h2>Bills</h2>
   <div id="billList"></div>
+  <button class="btn" onclick="openBill(null)">+ Add a bill</button>
 
   <h2>Money coming in</h2>
   <div class="card" id="inCard"></div>
+  <button class="btn" style="margin-top:10px" onclick="openIncome(null)">+ Add income source</button>
+
+  <h2>Other things owed</h2>
+  <div id="extraList"></div>
+  <button class="btn" onclick="openExtra(null)">+ Add something owed</button>
 
   <h2>Funds building</h2>
   <div class="card" id="fundCard"></div>
@@ -231,21 +237,31 @@ var DEF={
   showFund:0,
   billsPaid:{},          // 'billid-YYYY-MM': true
   dcf:{ins:false,refs:false,land:false,fp:true,phys:true,train:true,edu:true,stubs:true},
-  contacts:[]
+  contacts:[],
+  bills:[
+    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · balance $540.39 · brother covers $120/mo'},
+    {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · on payment plan'},
+    {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work'},
+    {id:'cable',n:'Cable / internet',a:80,    day:15,note:''},
+    {id:'laun', n:'Laundry',         a:25,    day:15,note:''},
+    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:15,note:''}
+  ],
+  income:[
+    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'},
+    {id:'bro', n:'Brother · AT&T', a:120,note:'Monthly'}
+  ],
+  extras:[
+    {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — theirs owed for a prior payment gap',done:false}
+  ]
 };
 var S=Object.assign({},DEF,load()||{});
 S.dcf=Object.assign({},DEF.dcf,S.dcf||{});
+if(!S.bills)S.bills=DEF.bills;
+if(!S.income)S.income=DEF.income;
+if(!S.extras)S.extras=DEF.extras;
 
 /* ---------- constants: real numbers ---------- */
 var FLOOR=600, RENT=875, WEEKLY_ARR=250;
-var BILLS=[
-  {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · brother covers $150'},
-  {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · on payment plan'},
-  {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work'},
-  {id:'cable',n:'Cable / internet',a:80,    day:15,note:''},
-  {id:'laun', n:'Laundry',         a:25,    day:15,note:''},
-  {id:'subs', n:'Spotify · Claude · Apple',a:43,day:15,note:''}
-];
 var DCFI=[
   {k:'ins', n:'Auto insurance copy',  d:'Due Sept 10 · must be the new Geico policy'},
   {k:'refs',n:'Three reference letters',d:'Due Sept 10'},
@@ -384,7 +400,7 @@ function render(){
   var up=[];
   var dR=daysUntil(10);
   up.push({n:'October rent',a:money(RENT),d:dR+' days · by the 10th',cls:dR<=5?'urgent':dR<=10?'soon':''});
-  BILLS.slice(0,3).forEach(function(b){
+  S.bills.slice(0,3).forEach(function(b){
     var dd=daysUntil(b.day);
     if(S.billsPaid[b.id+'-'+mKey(t)])return;
     up.push({n:b.n,a:money2(b.a),d:dd+' days · by the '+b.day+'th',cls:dd<=3?'urgent':dd<=7?'soon':''});
@@ -412,21 +428,32 @@ function render(){
     '<div class="btnrow"><button class="btn sm" onclick="payArr()">Log a payment</button>'+
     '<button class="btn sm" onclick="setArr()">Set balance</button></div>';
 
-  // bills
-  document.getElementById('billList').innerHTML=BILLS.map(function(b){
+  // bills — tap to edit, checkbox-style paid toggle via pill
+  document.getElementById('billList').innerHTML=S.bills.map(function(b){
     var key=b.id+'-'+mKey(t), paid=!!S.billsPaid[key], dd=daysUntil(b.day);
     var cls=paid?'done':dd<=3?'urgent':dd<=7?'soon':'';
     var pill=paid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
              dd<=7?'<span class="pill p-amb">'+dd+'d</span>':'<span class="pill p-gry">'+dd+'d</span>';
-    return '<div class="card '+cls+'" onclick="togBill(\''+key+'\')"><div class="row"><div>'+
+    return '<div class="card '+cls+'"><div class="row" onclick="openBill(\''+b.id+'\')"><div>'+
       '<div class="nm">'+b.n+pill+'</div><div class="mt">By the '+b.day+'th'+(b.note?' · '+b.note:'')+'</div></div>'+
-      '<div class="amt">'+money2(b.a)+'</div></div></div>'}).join('');
+      '<div class="amt">'+money2(b.a)+'</div></div>'+
+      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();togBill(\''+key+'\')">'+
+      (paid?'Mark unpaid':'Mark paid')+'</button></div></div>'}).join('');
+  // income — fully editable
+  document.getElementById('inCard').innerHTML=S.income.map(function(inc){
+    return '<div class="row" onclick="openIncome(\''+inc.id+'\')"><div><div class="nm">'+inc.n+
+      '</div><div class="mt">'+(inc.note||'')+'</div></div><div class="amt">'+money2(inc.a)+'</div></div>'}).join('')+
+    '<div class="row" style="opacity:.55"><div><div class="nm">Driving floor</div>'+
+    '<div class="mt">Your target, not tracked income — $100/day, Wed–Sun minimum</div></div><div class="amt">$600/wk</div></div>';
 
-  // income
-  document.getElementById('inCard').innerHTML=
-    '<div class="row"><div><div class="nm">Cash assistance</div><div class="mt">4th and 19th</div></div><div class="amt">$375 ×2</div></div>'+
-    '<div class="row"><div><div class="nm">Brother · AT&amp;T</div><div class="mt">Monthly</div></div><div class="amt">$150</div></div>'+
-    '<div class="row"><div><div class="nm">Driving floor</div><div class="mt">$100/day, Wed–Sun minimum</div></div><div class="amt">$600/wk</div></div>';
+  // extras / other things owed
+  document.getElementById('extraList').innerHTML=(S.extras.length?S.extras.map(function(x){
+    return '<div class="card'+(x.done?' done':'')+'"><div class="row" onclick="openExtra(\''+x.id+'\')"><div>'+
+      '<div class="nm">'+x.n+(x.done?'<span class="pill p-grn">Resolved</span>':'')+'</div>'+
+      '<div class="mt">'+(x.note||'')+'</div></div><div class="amt">'+money2(x.a)+'</div></div>'+
+      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();togExtra(\''+x.id+'\')">'+
+      (x.done?'Mark unresolved':'Mark resolved')+'</button></div></div>'}).join(''):
+    '<div class="mt">Nothing extra right now.</div>');
 
   // funds
   var sp=Math.min(100,S.showFund/200*100);
@@ -473,23 +500,108 @@ function togDcf(k){S.dcf[k]=!S.dcf[k];save();render()}
 
 function sheet(html){document.getElementById('sheet').innerHTML=
   '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet"><div class="grab"></div>'+html+'</div></div>'}
+/* ---------- BILLS: add / edit / delete ---------- */
+function openBill(id){
+  var b=id?S.bills.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">Name, amount, and day of month it\'s due.</div>'+
+    '<div class="field"><label class="f">Name</label><input id="bn" placeholder="e.g. Car insurance" value="'+(b?b.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="ba" type="number" inputmode="decimal" placeholder="0" value="'+(b?b.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Due day of month</label><input id="bd" type="number" min="1" max="31" placeholder="15" value="'+(b?b.day:'')+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="bnote" placeholder="e.g. on a payment plan" value="'+(b?(b.note||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveBill(\''+(id||'')+'\')">Save</button>'+
+    (b?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delBill(\''+id+'\')">Delete this bill</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveBill(id){
+  var n=document.getElementById('bn').value.trim();
+  var a=parseFloat(document.getElementById('ba').value);
+  var d=parseInt(document.getElementById('bd').value,10);
+  var note=document.getElementById('bnote').value.trim();
+  if(!n){document.getElementById('bn').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<0){document.getElementById('ba').style.borderColor='var(--bad)';return}
+  if(isNaN(d)||d<1||d>31){document.getElementById('bd').style.borderColor='var(--bad)';return}
+  if(id){var b=S.bills.find(function(x){return x.id===id});b.n=n;b.a=a;b.day=d;b.note=note}
+  else{S.bills.push({id:'b'+Date.now(),n:n,a:a,day:d,note:note})}
+  save();closeSheet();render();
+}
+function delBill(id){S.bills=S.bills.filter(function(x){return x.id!==id});save();closeSheet();render()}
+
+/* ---------- INCOME: add / edit / delete ---------- */
+function openIncome(id){
+  var inc=id?S.income.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(inc?'Edit income source':'Add income source')+'</div><div class="sh-s">Anything that reliably comes in.</div>'+
+    '<div class="field"><label class="f">Name</label><input id="in" placeholder="e.g. Cash assistance" value="'+(inc?inc.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="ia" type="number" inputmode="decimal" placeholder="0" value="'+(inc?inc.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="inote" placeholder="e.g. lands on the 4th and 19th" value="'+(inc?(inc.note||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveIncome(\''+(id||'')+'\')">Save</button>'+
+    (inc?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delIncome(\''+id+'\')">Delete this source</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveIncome(id){
+  var n=document.getElementById('in').value.trim();
+  var a=parseFloat(document.getElementById('ia').value);
+  var note=document.getElementById('inote').value.trim();
+  if(!n){document.getElementById('in').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<0){document.getElementById('ia').style.borderColor='var(--bad)';return}
+  if(id){var inc=S.income.find(function(x){return x.id===id});inc.n=n;inc.a=a;inc.note=note}
+  else{S.income.push({id:'i'+Date.now(),n:n,a:a,note:note})}
+  save();closeSheet();render();
+}
+function delIncome(id){S.income=S.income.filter(function(x){return x.id!==id});save();closeSheet();render()}
+
+/* ---------- EXTRAS: add / edit / delete / resolve ---------- */
+function openExtra(id){
+  var x=id?S.extras.find(function(e){return e.id===id}):null;
+  sheet('<div class="sh-t">'+(x?'Edit item':'Add something owed')+'</div><div class="sh-s">One-off things that don\'t fit rent or a regular bill — old balances, side debts, anything.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="xn" placeholder="e.g. Eversource shortfall" value="'+(x?x.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="xa" type="number" inputmode="decimal" placeholder="0" value="'+(x?x.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="xnote" placeholder="context" value="'+(x?(x.note||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveExtra(\''+(id||'')+'\')">Save</button>'+
+    (x?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delExtra(\''+id+'\')">Delete</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveExtra(id){
+  var n=document.getElementById('xn').value.trim();
+  var a=parseFloat(document.getElementById('xa').value);
+  var note=document.getElementById('xnote').value.trim();
+  if(!n){document.getElementById('xn').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<0){document.getElementById('xa').style.borderColor='var(--bad)';return}
+  if(id){var x=S.extras.find(function(e){return e.id===id});x.n=n;x.a=a;x.note=note}
+  else{S.extras.push({id:'x'+Date.now(),n:n,a:a,note:note,done:false})}
+  save();closeSheet();render();
+}
+function delExtra(id){S.extras=S.extras.filter(function(x){return x.id!==id});save();closeSheet();render()}
+function togExtra(id){var x=S.extras.find(function(e){return e.id===id});x.done=!x.done;save();render()}
+
 function closeSheet(){document.getElementById('sheet').innerHTML=''}
 
 function openLog(){
   var v=S.daily[iso(today())];
-  sheet('<div class="sh-t">Log today</div><div class="sh-s">What did you clear after gas?</div>'+
-    '<div class="field"><label class="f">Amount</label>'+
+  var opts='';
+  for(var i=0;i<7;i++){
+    var d=new Date();d.setDate(d.getDate()-i);
+    var lbl=i===0?'Today, '+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
+                 :d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    opts+='<option value="'+iso(d)+'"'+(i===0?' selected':'')+'>'+lbl+'</option>';
+  }
+  sheet('<div class="sh-t">Log a day</div><div class="sh-s">Only actual driving/gig income — never a bill or rent payment.</div>'+
+    '<div class="field"><label class="f">Which day</label><select id="logday" onchange="fillLogAmt()">'+opts+'</select></div>'+
+    '<div class="field"><label class="f">Amount cleared after gas</label>'+
     '<input id="amt" type="number" inputmode="decimal" placeholder="100" value="'+(v!==undefined?v:'')+'"></div>'+
-    '<div class="okbox">When the day clears $100, $40 goes to the vehicle reserve and $40 to the Oct 11 fund. '+
-    'That happens automatically when you save.</div>'+
+    '<div class="okbox">When a day clears $100, $40 goes to the vehicle reserve and $40 to the Oct 11 fund automatically.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveLog()">Save</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
   setTimeout(function(){var e=document.getElementById('amt');if(e)e.focus()},220);
 }
+function fillLogAmt(){
+  var k=document.getElementById('logday').value;
+  document.getElementById('amt').value = S.daily[k]!==undefined ? S.daily[k] : '';
+}
 function saveLog(){
+  var k=document.getElementById('logday').value;
   var e=document.getElementById('amt'),n=parseFloat(e.value);
   if(isNaN(n)||n<0){e.style.borderColor='var(--bad)';return}
-  var k=iso(today()), had=S.daily[k]!==undefined;
+  var had=S.daily[k]!==undefined;
   S.daily[k]=n;
   if(!had && n>=100){S.carReserve+=40;S.showFund=Math.min(200,S.showFund+40)}
   save();closeSheet();render();
