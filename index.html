@@ -114,6 +114,7 @@ text-transform:uppercase;color:var(--tx3);font-weight:500}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;
 justify-content:center;padding:0}
 .sheet{background:var(--s1);width:100%;max-width:520px;border-radius:22px 22px 0 0;
+overscroll-behavior:contain;-webkit-overflow-scrolling:touch;will-change:transform;
 padding:22px 18px calc(28px + env(safe-area-inset-bottom));border-top:1px solid var(--bd2);
 max-height:88vh;overflow-y:auto}
 .sh-t{font-size:19px;font-weight:600;margin-bottom:4px}
@@ -305,6 +306,9 @@ if(!S.settings)S.settings=DEF.settings;
 S.settings=Object.assign({},DEF.settings,S.settings);
 if(!S.trips)S.trips=[];
 if(!S.seen)S.seen={};
+/* one-time: earlier builds auto-swept $40 into funds on backfilled days, inventing money
+   that was never set aside. Reset both to zero once so they reflect reality. */
+if(!S.seen.fundsFixed){S.carReserve=0;S.showFund=0;S.seen.fundsFixed=1;save()}
 
 /* ---------- constants: real numbers ---------- */
 function FLOOR(){return S.settings.floor}
@@ -522,7 +526,8 @@ function render(){
     '<div class="amt">'+money(S.carReserve)+'</div></div>'+
     '<div class="row"><div><div class="nm">Show / event fund</div><div class="mt">Goal '+money(S.settings.showGoal)+' · '+daysUntilDate(2026,S.settings.showMonth-1,S.settings.showDay)+' days</div></div>'+
     '<div class="amt">'+money(S.showFund)+'</div></div>'+
-    '<div class="mini gold"><i style="width:'+sp+'%"></i></div>';
+    '<div class="mini gold"><i style="width:'+sp+'%"></i></div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="openFunds()">Set balances</button></div>';
 
   document.getElementById('settingsCard').innerHTML=
     '<div class="row"><div><div class="nm">Weekly driving floor</div></div><div class="amt">'+money(S.settings.floor)+'</div></div>'+
@@ -587,7 +592,25 @@ function togBill(k){S.billsPaid[k]=!S.billsPaid[k];save();render()}
 function togDcf(k){S.dcf[k]=!S.dcf[k];save();render()}
 
 function sheet(html){document.getElementById('sheet').innerHTML=
-  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet"><div class="grab"></div>'+html+'</div></div>'}
+  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="theSheet"><div class="grab"></div>'+html+'</div></div>';
+  document.body.style.overflow='hidden';
+  var el=document.getElementById('theSheet'),y0=null,dy=0;
+  el.addEventListener('touchstart',function(e){
+    if(el.scrollTop>0)return;            // only start a drag when already at the top
+    y0=e.touches[0].clientY;dy=0;
+  },{passive:true});
+  el.addEventListener('touchmove',function(e){
+    if(y0===null)return;
+    dy=e.touches[0].clientY-y0;
+    if(dy>0){el.style.transform='translateY('+dy+'px)';el.style.transition='none'}
+  },{passive:true});
+  el.addEventListener('touchend',function(){
+    if(y0===null)return;
+    el.style.transition='transform .25s ease-out';
+    if(dy>90){closeSheet()}else{el.style.transform=''}
+    y0=null;dy=0;
+  });
+}
 /* ---------- BILLS: add / edit / delete ---------- */
 function openBill(id){
   var b=id?S.bills.find(function(x){return x.id===id}):null;
@@ -692,7 +715,7 @@ function saveSettings(){
   S.settings=v;save();closeSheet();render();
 }
 
-function closeSheet(){document.getElementById('sheet').innerHTML=''}
+function closeSheet(){document.getElementById('sheet').innerHTML='';document.body.style.overflow=''}
 
 /* ---------- SCORING ---------- */
 function areaKey(s){return (s||'').trim().toLowerCase()}
@@ -769,7 +792,7 @@ function tookIt(){
   var k=iso(today());
   var had=S.daily[k]!==undefined;
   S.daily[k]=(S.daily[k]||0)+pay;
-  if(!had && S.daily[k]>=100){S.carReserve+=40;S.showFund=Math.min(S.settings.showGoal,S.showFund+40)}
+  // funds are set manually — the app never invents money you did not move
   S.trips.push({d:k,pay:pay,mi:mi||0,min:min||0,area:area||''});
   save();
   document.getElementById('scPay').value='';
@@ -843,6 +866,22 @@ function celebrate(title,body){
     '<button class="btn go" onclick="closeSheet()">Good</button>');
 }
 
+function openFunds(){
+  sheet('<div class="sh-t">Set fund balances</div><div class="sh-s">Enter what you have actually put aside. The app will never add to these on its own.</div>'+
+    '<div class="field"><label class="f">Vehicle reserve</label><input id="fCar" type="number" inputmode="decimal" value="'+S.carReserve+'"></div>'+
+    '<div class="field"><label class="f">Show / event fund</label><input id="fShow" type="number" inputmode="decimal" value="'+S.showFund+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveFunds()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveFunds(){
+  var c=parseFloat(document.getElementById('fCar').value);
+  var s=parseFloat(document.getElementById('fShow').value);
+  if(isNaN(c)||c<0){document.getElementById('fCar').style.borderColor='var(--bad)';return}
+  if(isNaN(s)||s<0){document.getElementById('fShow').style.borderColor='var(--bad)';return}
+  S.carReserve=c;S.showFund=s;save();closeSheet();render();
+}
+
+function openFundsPlaceholder(){}
 function openTreeDetail(){
   var st=streak(), mi=milestones(), c=last14();
   var dcfDone=DCFI.filter(function(i){return S.dcf[i.k]}).length;
@@ -873,7 +912,7 @@ function openTreeDetail(){
     (st===0?'No active streak right now — log today to start one.':'Currently '+st+' day'+(st===1?'':'s')+' in a row logged.')+'</div>'+
 
     '<h2 style="margin-top:18px">Trunk — '+mi+' milestones</h2>'+
-    '<div class="note">Grows permanently with real progress: DCF items completed and every $'+money(WEEKLY_ARR())+' chunk paid off the arrears. Never shrinks.</div>'+
+    '<div class="note">Grows permanently with real progress: DCF items completed and every '+money(WEEKLY_ARR())+' chunk paid off the arrears. Never shrinks.</div>'+
 
     '<h2 style="margin-top:18px">Guardian branch — DCF</h2>'+
     '<div class="mini"><i style="width:'+Math.round(dcfDone/DCFI.length*100)+'%"></i></div>'+
@@ -881,7 +920,7 @@ function openTreeDetail(){
 
     '<h2 style="margin-top:18px">Trader branch — income discipline</h2>'+
     '<div class="mini"><i style="width:'+Math.round(weeksHit/4*100)+'%"></i></div>'+
-    '<div class="note">'+weeksHit+' of the last 4 weeks cleared your $'+money(FLOOR())+' floor. This tracks driving discipline, not trades — that stays outside the app on purpose.</div>'+
+    '<div class="note">'+weeksHit+' of the last 4 weeks cleared your '+money(FLOOR())+' floor. This tracks driving discipline, not trades — that stays outside the app on purpose.</div>'+
     weekRows+
 
     '<h2 style="margin-top:18px">Legacy branch — long-term stability</h2>'+
@@ -916,7 +955,7 @@ function saveLog(){
   if(isNaN(n)||n<0){e.style.borderColor='var(--bad)';return}
   var had=S.daily[k]!==undefined;
   S.daily[k]=n;
-  if(!had && n>=100){S.carReserve+=40;S.showFund=Math.min(S.settings.showGoal,S.showFund+40)}
+  // funds are set manually — the app never invents money you did not move
   save();closeSheet();render();
 }
 function payArr(){
