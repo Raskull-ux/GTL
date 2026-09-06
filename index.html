@@ -223,6 +223,10 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <h2>Funds building</h2>
   <div class="card" id="fundCard"></div>
 
+  <h2>Goals</h2>
+  <div id="goalList"></div>
+  <button class="btn" onclick="openGoal(null)">+ Add a goal</button>
+
   <h2>Your targets</h2>
   <div class="card" id="settingsCard"></div>
   <div class="tiny">These are your numbers, not fixed rules. Change them the moment something in real life changes — a new floor, a new rent amount, a new arrears pace.</div>
@@ -293,7 +297,10 @@ var DEF={
   extras:[
     {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — theirs owed for a prior payment gap',done:false}
   ],
-  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,showGoal:200,showMonth:9,showDay:11,perMile:1.20,perHour:20},
+  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,perMile:1.20,perHour:20},
+  goals:[
+    {id:'g1',n:'Oct 11 show',target:200,current:0,date:'2026-10-11'}
+  ],
   trips:[],
   seen:{}
 };
@@ -306,6 +313,12 @@ if(!S.settings)S.settings=DEF.settings;
 S.settings=Object.assign({},DEF.settings,S.settings);
 if(!S.trips)S.trips=[];
 if(!S.seen)S.seen={};
+if(!S.goals)S.goals=DEF.goals;
+/* migrate old single show-fund fields into the new goals list, once */
+if(!S.seen.goalsMigrated){
+  if(S.showFund>0 && S.goals[0]){S.goals[0].current=S.showFund}
+  S.seen.goalsMigrated=1;save();
+}
 /* one-time: earlier builds auto-swept $40 into funds on backfilled days, inventing money
    that was never set aside. Reset both to zero once so they reflect reality. */
 if(!S.seen.fundsFixed){S.carReserve=0;S.showFund=0;S.seen.fundsFixed=1;save()}
@@ -463,7 +476,7 @@ function render(){
   // NEXT UP
   var up=[];
   var dR=daysUntil(S.settings.rentDay);
-  up.push({n:'October rent',a:money(RENT()),d:dR+' days · by the 10th',cls:dR<=5?'urgent':dR<=10?'soon':''});
+  up.push({n:t.toLocaleDateString('en-US',{month:'long'})+' rent',a:money(RENT()),d:dR+' days · by the '+ordinal(S.settings.rentDay),cls:dR<=5?'urgent':dR<=10?'soon':''});
   S.bills.slice(0,3).forEach(function(b){
     var dd=daysUntil(b.day);
     if(S.billsPaid[b.id+'-'+mKey(t)])return;
@@ -519,21 +532,27 @@ function render(){
       (x.done?'Mark unresolved':'Mark resolved')+'</button></div></div>'}).join(''):
     '<div class="mt">Nothing extra right now.</div>');
 
-  // funds
-  var sp=Math.min(100,S.showFund/S.settings.showGoal*100);
+  // vehicle reserve — its own simple editable number, not date-bound
   document.getElementById('fundCard').innerHTML=
     '<div class="row"><div><div class="nm">Vehicle reserve</div><div class="mt">The Civic is the whole operation</div></div>'+
     '<div class="amt">'+money(S.carReserve)+'</div></div>'+
-    '<div class="row"><div><div class="nm">Show / event fund</div><div class="mt">Goal '+money(S.settings.showGoal)+' · '+daysUntilDate(2026,S.settings.showMonth-1,S.settings.showDay)+' days</div></div>'+
-    '<div class="amt">'+money(S.showFund)+'</div></div>'+
-    '<div class="mini gold"><i style="width:'+sp+'%"></i></div>'+
-    '<div class="btnrow"><button class="btn sm" onclick="openFunds()">Set balances</button></div>';
+    '<div class="btnrow"><button class="btn sm" onclick="openFunds()">Set balance</button></div>';
+
+  // goals — open-ended, any name, any amount, any real date
+  document.getElementById('goalList').innerHTML=(S.goals.length?S.goals.map(function(g){
+    var pct=g.target?Math.min(100,g.current/g.target*100):0;
+    var dleft=Math.round((new Date(g.date+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+    var dtxt=isNaN(dleft)?'':dleft<0?'past date':dleft+' day'+(dleft===1?'':'s');
+    return '<div class="card"><div class="row" onclick="openGoal(\''+g.id+'\')"><div>'+
+      '<div class="nm">'+g.n+'</div><div class="mt">Goal '+money(g.target)+(dtxt?' · '+dtxt:'')+'</div></div>'+
+      '<div class="amt">'+money(g.current)+'</div></div>'+
+      '<div class="mini gold"><i style="width:'+pct+'%"></i></div></div>'}).join(''):
+    '<div class="mt">No goals yet — add one below.</div>');
 
   document.getElementById('settingsCard').innerHTML=
     '<div class="row"><div><div class="nm">Weekly driving floor</div></div><div class="amt">'+money(S.settings.floor)+'</div></div>'+
     '<div class="row"><div><div class="nm">Rent</div><div class="mt">Due by the '+ordinal(S.settings.rentDay)+'</div></div><div class="amt">'+money(S.settings.rent)+'</div></div>'+
     '<div class="row"><div><div class="nm">Arrears pace</div><div class="mt">Per week</div></div><div class="amt">'+money(S.settings.weeklyArr)+'</div></div>'+
-    '<div class="row"><div><div class="nm">Show/event fund goal</div></div><div class="amt">'+money(S.settings.showGoal)+'</div></div>'+
     '<div class="row"><div><div class="nm">Order minimums</div><div class="mt">Used to score orders</div></div><div class="amt">$'+S.settings.perMile.toFixed(2)+'/mi · $'+S.settings.perHour+'/hr</div></div>'+
     '<div class="btnrow"><button class="btn sm" onclick="openSettings()">Edit targets</button></div>';
 
@@ -693,9 +712,6 @@ function openSettings(){
     '<div class="field"><label class="f">Arrears payment per week</label><input id="sArr" type="number" inputmode="decimal" value="'+s.weeklyArr+'"></div>'+
     '<div class="field"><label class="f">Minimum $ per mile</label><input id="sPM" type="number" step="0.05" inputmode="decimal" value="'+s.perMile+'"></div>'+
     '<div class="field"><label class="f">Minimum $ per hour</label><input id="sPH" type="number" inputmode="decimal" value="'+s.perHour+'"></div>'+
-    '<div class="field"><label class="f">Show/event fund goal</label><input id="sGoal" type="number" inputmode="decimal" value="'+s.showGoal+'"></div>'+
-    '<div class="field"><label class="f">Show/event month (1-12)</label><input id="sMonth" type="number" min="1" max="12" value="'+s.showMonth+'"></div>'+
-    '<div class="field"><label class="f">Show/event day</label><input id="sDay" type="number" min="1" max="31" value="'+s.showDay+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveSettings()">Save</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
 }
@@ -705,11 +721,8 @@ function saveSettings(){
     rent:parseFloat(document.getElementById('sRent').value),
     rentDay:parseInt(document.getElementById('sRentDay').value,10),
     weeklyArr:parseFloat(document.getElementById('sArr').value),
-    showGoal:parseFloat(document.getElementById('sGoal').value),
     perMile:parseFloat(document.getElementById('sPM').value),
-    perHour:parseFloat(document.getElementById('sPH').value),
-    showMonth:parseInt(document.getElementById('sMonth').value,10),
-    showDay:parseInt(document.getElementById('sDay').value,10)
+    perHour:parseFloat(document.getElementById('sPH').value)
   };
   for(var k in v){if(isNaN(v[k])){return}}
   S.settings=v;save();closeSheet();render();
@@ -867,28 +880,52 @@ function celebrate(title,body){
 }
 
 function openFunds(){
-  sheet('<div class="sh-t">Set fund balances</div><div class="sh-s">Enter what you have actually put aside. The app will never add to these on its own.</div>'+
-    '<div class="field"><label class="f">Vehicle reserve</label><input id="fCar" type="number" inputmode="decimal" value="'+S.carReserve+'"></div>'+
-    '<div class="field"><label class="f">Show / event fund</label><input id="fShow" type="number" inputmode="decimal" value="'+S.showFund+'"></div>'+
+  sheet('<div class="sh-t">Vehicle reserve</div><div class="sh-s">What you\'ve actually put aside. Never added to on its own.</div>'+
+    '<div class="field"><label class="f">Balance</label><input id="fCar" type="number" inputmode="decimal" value="'+S.carReserve+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveFunds()">Save</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
 }
 function saveFunds(){
   var c=parseFloat(document.getElementById('fCar').value);
-  var s=parseFloat(document.getElementById('fShow').value);
   if(isNaN(c)||c<0){document.getElementById('fCar').style.borderColor='var(--bad)';return}
-  if(isNaN(s)||s<0){document.getElementById('fShow').style.borderColor='var(--bad)';return}
-  S.carReserve=c;S.showFund=s;save();closeSheet();render();
+  S.carReserve=c;save();closeSheet();render();
 }
 
-function openFundsPlaceholder(){}
+/* ---------- GOALS: open-ended, any name/amount/date ---------- */
+function openGoal(id){
+  var g=id?S.goals.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(g?'Edit goal':'Add a goal')+'</div><div class="sh-s">A show, a vacation, a house down payment — anything you\'re saving toward, with a real date.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="gn" placeholder="e.g. Jadakiss show" value="'+(g?g.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Target amount</label><input id="gt" type="number" inputmode="decimal" placeholder="200" value="'+(g?g.target:'')+'"></div>'+
+    '<div class="field"><label class="f">Already saved</label><input id="gc" type="number" inputmode="decimal" placeholder="0" value="'+(g?g.current:0)+'"></div>'+
+    '<div class="field"><label class="f">Target date</label><input id="gd" type="date" value="'+(g?g.date:'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveGoal(\''+(id||'')+'\')">Save</button>'+
+    (g?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delGoal(\''+id+'\')">Delete this goal</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveGoal(id){
+  var n=document.getElementById('gn').value.trim();
+  var t=parseFloat(document.getElementById('gt').value);
+  var c=parseFloat(document.getElementById('gc').value);
+  var d=document.getElementById('gd').value;
+  if(!n){document.getElementById('gn').style.borderColor='var(--bad)';return}
+  if(isNaN(t)||t<=0){document.getElementById('gt').style.borderColor='var(--bad)';return}
+  if(isNaN(c)||c<0)c=0;
+  if(id){var g=S.goals.find(function(x){return x.id===id});g.n=n;g.target=t;g.current=c;g.date=d}
+  else{S.goals.push({id:'g'+Date.now(),n:n,target:t,current:c,date:d})}
+  save();closeSheet();render();
+}
+function delGoal(id){S.goals=S.goals.filter(function(x){return x.id!==id});save();closeSheet();render()}
+
 function openTreeDetail(){
   var st=streak(), mi=milestones(), c=last14();
   var dcfDone=DCFI.filter(function(i){return S.dcf[i.k]}).length;
   var weeks=pastWeeksFloorHits(4);
   var weeksHit=weeks.filter(function(w){return w.hit}).length;
   var arrPct=S.arrears?Math.round(Math.min(100,S.paidArrears/S.arrears*100)):0;
-  var fundPct=S.settings.showGoal?Math.round(Math.min(100,S.showFund/S.settings.showGoal*100)):0;
+  var goalsTxt = S.goals.length ?
+    S.goals.map(function(g){var p=g.target?Math.round(g.current/g.target*100):0;return g.n+' '+p+'%'}).join(' · ')
+    : 'no goals set';
 
   var leafRows='';
   for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var v=S.daily[iso(d)];
@@ -925,7 +962,7 @@ function openTreeDetail(){
 
     '<h2 style="margin-top:18px">Legacy branch — long-term stability</h2>'+
     '<div class="mini"><i style="width:'+arrPct+'%"></i></div>'+
-    '<div class="note">Arrears '+arrPct+'% paid off · vehicle reserve '+money(S.carReserve)+' · show fund '+fundPct+'% ('+money(S.showFund)+' of '+money(S.settings.showGoal)+')</div>'+
+    '<div class="note">Arrears '+arrPct+'% paid off · vehicle reserve '+money(S.carReserve)+' · '+goalsTxt+'</div>'+
 
     '<h2 style="margin-top:18px">Leaves — last 14 days</h2>'+
     leafRows+
