@@ -280,6 +280,7 @@ var DEF={
   carReserve:0,
   showFund:0,
   billsPaid:{},          // 'billid-YYYY-MM': true
+  rentPaidAmt:{},        // 'YYYY-MM': dollars paid toward that month's rent
   dcf:{ins:false,refs:false,land:false,fp:true,phys:true,train:true,edu:true,stubs:true},
   contacts:[],
   bills:[
@@ -314,6 +315,7 @@ S.settings=Object.assign({},DEF.settings,S.settings);
 if(!S.trips)S.trips=[];
 if(!S.seen)S.seen={};
 if(!S.goals)S.goals=DEF.goals;
+if(!S.rentPaidAmt)S.rentPaidAmt={};
 /* migrate old single show-fund fields into the new goals list, once */
 if(!S.seen.goalsMigrated){
   if(S.showFund>0 && S.goals[0]){S.goals[0].current=S.showFund}
@@ -476,7 +478,10 @@ function render(){
   // NEXT UP
   var up=[];
   var dR=daysUntil(S.settings.rentDay);
-  up.push({n:t.toLocaleDateString('en-US',{month:'long'})+' rent',a:money(RENT()),d:dR+' days · by the '+ordinal(S.settings.rentDay),cls:dR<=5?'urgent':dR<=10?'soon':''});
+  var rentKey=mKey(t), rentPaidSoFar=S.rentPaidAmt[rentKey]||0, rentRemaining=Math.max(0,RENT()-rentPaidSoFar);
+  if(rentRemaining>0){
+    up.push({n:t.toLocaleDateString('en-US',{month:'long'})+' rent',a:money(rentRemaining)+(rentPaidSoFar>0?' left':''),d:dR+' days · by the '+ordinal(S.settings.rentDay),cls:dR<=5?'urgent':dR<=10?'soon':''});
+  }
   S.bills.slice(0,3).forEach(function(b){
     var dd=daysUntil(b.day);
     if(S.billsPaid[b.id+'-'+mKey(t)])return;
@@ -487,11 +492,19 @@ function render(){
     return '<div class="card '+u.cls+'"><div class="row"><div><div class="nm">'+u.n+'</div>'+
       '<div class="mt">'+u.d+'</div></div><div class="amt">'+u.a+'</div></div></div>'}).join('');
 
-  // MONEY: rent
-  document.getElementById('rentCard').innerHTML=
+  // MONEY: rent — real remaining balance, payments logged same as arrears
+  var rentPct=RENT()?Math.min(100,rentPaidSoFar/RENT()*100):0;
+  document.getElementById('rentCard').innerHTML = rentRemaining<=0 ?
+    '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent<span class="pill p-grn">Paid in full</span></div>'+
+    '<div class="mt">'+money(rentPaidSoFar)+' paid toward '+money(RENT())+'. Resets next month.</div></div>'+
+    '<div class="amt">$0</div></div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log another payment</button><button class="btn sm" onclick="resetRentMonth()">Reset this month</button></div>'
+    :
     '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent'+(dR<=7?'<span class="pill p-red">'+dR+'d</span>':'')+
-    '</div><div class="mt">Late fee after the '+ordinal(S.settings.rentDay)+'. Pay this before arrears, before anything.</div></div>'+
-    '<div class="amt">'+money(RENT())+'</div></div>';
+    '</div><div class="mt">'+(rentPaidSoFar>0?money(rentPaidSoFar)+' paid so far · ':'')+'Late fee after the '+ordinal(S.settings.rentDay)+'.</div></div>'+
+    '<div class="amt">'+money(rentRemaining)+'</div></div>'+
+    (rentPaidSoFar>0?'<div class="mini"><i style="width:'+rentPct+'%"></i></div>':'')+
+    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log a payment</button></div>';
 
   // arrears
   var rem=Math.max(0,S.arrears-S.paidArrears);
@@ -607,6 +620,27 @@ function daysUntilDate(y,m,d){var t=new Date();t.setHours(0,0,0,0);
 function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
 
 /* ---------- ACTIONS ---------- */
+function payRent(){
+  sheet('<div class="sh-t">Log a rent payment</div><div class="sh-s">Add whatever you actually paid — partial or full.</div>'+
+    '<div class="field"><label class="f">Amount</label><input id="rpAmt" type="number" inputmode="decimal" placeholder="500"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveRentPay()">Log payment</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('rpAmt');if(e)e.focus()},220);
+}
+function saveRentPay(){
+  var e=document.getElementById('rpAmt'),n=parseFloat(e.value);
+  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
+  var k=mKey(today());
+  S.rentPaidAmt[k]=(S.rentPaidAmt[k]||0)+n;
+  save();closeSheet();render();
+}
+function resetRentMonth(){
+  sheet('<div class="sh-t">Reset this month\'s rent?</div><div class="sh-s">Clears the amount logged as paid for '+
+    today().toLocaleDateString('en-US',{month:'long'})+'. Use this if you logged something by mistake.</div>'+
+    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doResetRent()">Reset it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function doResetRent(){var k=mKey(today());S.rentPaidAmt[k]=0;save();closeSheet();render()}
 function togBill(k){S.billsPaid[k]=!S.billsPaid[k];save();render()}
 function togDcf(k){S.dcf[k]=!S.dcf[k];save();render()}
 
@@ -818,6 +852,8 @@ function tookIt(){
 /* ---------- PROJECTION ---------- */
 function projection(){
   var t=today();
+  var remaining=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
+  if(remaining<=0)return{ok:true,avg:0,days:0,gap:0,perDay:0,paidAlready:true};
   var dR=daysUntil(S.settings.rentDay);
   var recent=[],d;
   for(var i=1;i<=14;i++){d=new Date();d.setDate(d.getDate()-i);
@@ -825,15 +861,16 @@ function projection(){
   if(recent.length<3)return null;
   var avg=recent.reduce(function(a,b){return a+b},0)/recent.length;
   var expected=avg*dR;
-  var need=RENT();
-  if(expected>=need)return{ok:true,avg:avg,days:dR,gap:0,perDay:0};
-  var gap=need-expected;
+  if(expected>=remaining)return{ok:true,avg:avg,days:dR,gap:0,perDay:0};
+  var gap=remaining-expected;
   return{ok:false,avg:avg,days:dR,gap:gap,perDay:dR>0?gap/dR:gap};
 }
 function renderProjection(){
   var p=projection(),el=document.getElementById('projBanner');
   if(!p){el.innerHTML='';return}
-  if(p.ok){
+  if(p.paidAlready){
+    el.innerHTML='<div class="okbox" style="margin-top:14px">This month\'s rent is fully paid. Nothing to track here until next month.</div>';
+  }else if(p.ok){
     el.innerHTML='<div class="okbox" style="margin-top:14px">On pace for rent. Averaging '+money(p.avg)+
       '/day over the last two weeks, with '+p.days+' day'+(p.days===1?'':'s')+' until it\'s due.</div>';
   }else{
