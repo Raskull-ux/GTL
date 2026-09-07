@@ -191,13 +191,18 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
       <input id="scMi" type="number" inputmode="decimal" placeholder="3.8" oninput="runScore()"></div>
     <div class="field"><label class="f">Minutes — optional, leave blank if you don't know</label>
       <input id="scMin" type="number" inputmode="decimal" placeholder="" oninput="runScore()"></div>
-    <div class="field"><label class="f">Area — optional, helps it learn your territory</label>
-      <input id="scArea" placeholder="e.g. Hartford, East Hartford"></div>
+    <div class="field"><label class="f">Pickup area — optional</label>
+      <input id="scArea" placeholder="e.g. Hartford"></div>
+    <div class="field"><label class="f">Drop-off area — optional</label>
+      <input id="scDrop" placeholder="e.g. New Britain"></div>
   </div>
   <div id="scoreOut"></div>
   <h2>Your territory</h2>
   <div class="card" id="terrCard"></div>
   <div class="tiny">Built from trips you've logged here. The more you log, the better it estimates time when you don't know it.</div>
+  <h2>Recent trips</h2>
+  <div id="tripList"></div>
+  <div class="tiny">Tap a trip to fix or delete it.</div>
 </section>
 
 <!-- ============ MONEY ============ -->
@@ -316,6 +321,7 @@ if(!S.trips)S.trips=[];
 if(!S.seen)S.seen={};
 if(!S.goals)S.goals=DEF.goals;
 if(!S.rentPaidAmt)S.rentPaidAmt={};
+S.trips.forEach(function(x,i){if(!x.id)x.id='legacy'+i+'-'+Date.now()});
 /* migrate old single show-fund fields into the new goals list, once */
 if(!S.seen.goalsMigrated){
   if(S.showFund>0 && S.goals[0]){S.goals[0].current=S.showFund}
@@ -597,21 +603,31 @@ function render(){
     '<div class="row"><div class="nm">$100+ days (14d)</div><div class="amt">'+c14.hit+'/14</div></div>';
   renderProjection();
 
-  // territory learned from logged trips
-  var areas={};
+  // territory learned from logged trips — keyed on pickup→drop-off route
+  var routes={};
   S.trips.forEach(function(x){
-    var k=areaKey(x.area);if(!k||!(x.mi>0))return;
-    if(!areas[k])areas[k]={n:0,mi:0,min:0,pay:0,name:x.area.trim()};
-    areas[k].n++;areas[k].mi+=x.mi;areas[k].min+=x.min;areas[k].pay+=x.pay;
+    var k=routeKey(x.area,x.drop);if(!k||!(x.mi>0))return;
+    if(!routes[k])routes[k]={n:0,mi:0,min:0,pay:0,name:k};
+    routes[k].n++;routes[k].mi+=x.mi;routes[k].min+=x.min;routes[k].pay+=x.pay;
   });
-  var aList=Object.keys(areas);
-  document.getElementById('terrCard').innerHTML = aList.length ?
-    aList.map(function(k){var a=areas[k];
+  var rKeys=Object.keys(routes);
+  document.getElementById('terrCard').innerHTML = rKeys.length ?
+    rKeys.map(function(k){var a=routes[k];
       var mpm=a.min>0?(a.min/a.mi):null;
       return '<div class="row"><div><div class="nm">'+a.name+'</div><div class="mt">'+a.n+' trip'+(a.n===1?'':'s')+
         (mpm?' · '+mpm.toFixed(1)+' min per mile':' · no times logged yet')+'</div></div>'+
         '<div class="amt">$'+(a.pay/a.mi).toFixed(2)+'<span style="font-size:11px;color:var(--tx3)">/mi</span></div></div>'}).join('')
     : '<div class="mt">No trips logged yet. Score an order, tap "Took it," and this fills in as you go.</div>';
+
+  // recent trips — tappable to fix or delete
+  var recentTrips=S.trips.slice(-10).reverse();
+  document.getElementById('tripList').innerHTML = recentTrips.length ?
+    recentTrips.map(function(x){
+      var route = x.area && x.drop ? x.area+' → '+x.drop : (x.area||x.drop||'no area set');
+      return '<div class="card"><div class="row" onclick="openTrip(\''+x.id+'\')"><div>'+
+        '<div class="nm">'+route+'</div><div class="mt">'+x.d+' · '+x.mi+' mi'+(x.min>0?' · '+x.min+' min':'')+'</div></div>'+
+        '<div class="amt">'+money2(x.pay)+'</div></div></div>'}).join('')
+    : '<div class="mt">Trips you score and log will show up here.</div>';
 
   checkRewards();
 }
@@ -766,19 +782,20 @@ function closeSheet(){document.getElementById('sheet').innerHTML='';document.bod
 
 /* ---------- SCORING ---------- */
 function areaKey(s){return (s||'').trim().toLowerCase()}
-function areaPace(area){
-  var k=areaKey(area);if(!k)return null;
-  var t=S.trips.filter(function(x){return areaKey(x.area)===k && x.min>0 && x.mi>0});
+function routeKey(from,to){var f=areaKey(from),t=areaKey(to);if(!f&&!t)return'';return f+(t?' → '+t:'')}
+function routePace(from,to){
+  var k=routeKey(from,to);if(!k)return null;
+  var t=S.trips.filter(function(x){return routeKey(x.area,x.drop)===k && x.min>0 && x.mi>0});
   if(t.length<2)return null;
   var sum=0;t.forEach(function(x){sum+=x.min/x.mi});
   return{minPerMile:sum/t.length,n:t.length};
 }
-function scoreOrder(pay,mi,min,area){
+function scoreOrder(pay,mi,min,area,drop){
   if(!(pay>0)||!(mi>0))return null;
   var perMile=pay/mi;
   var est=null,estFrom=null;
   if(min>0){est=min}
-  else{var ap=areaPace(area);if(ap){est=ap.minPerMile*mi;estFrom=ap.n}}
+  else{var ap=routePace(area,drop);if(ap){est=ap.minPerMile*mi;estFrom=ap.n}}
   var perHour=est>0?pay/(est/60):null;
 
   // $/mile scored against your floor: at floor = 6, double floor = 10
@@ -804,8 +821,9 @@ function runScore(){
   var mi=parseFloat(document.getElementById('scMi').value);
   var min=parseFloat(document.getElementById('scMin').value);
   var area=document.getElementById('scArea').value;
+  var drop=document.getElementById('scDrop').value;
   var out=document.getElementById('scoreOut');
-  var r=scoreOrder(pay,mi,min,area);
+  var r=scoreOrder(pay,mi,min,area,drop);
   if(!r){out.innerHTML='<div class="card"><div class="mt">Enter pay and miles to score it.</div></div>';return}
 
   var col = r.score>=7?'var(--grow)':r.score>=5?'var(--warn)':'var(--bad)';
@@ -816,11 +834,11 @@ function runScore(){
 
   if(r.perHour!==null){
     lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">Your floor: $'+
-      S.settings.perHour+(r.hasTime?'':' · estimated from '+r.estFrom+' past trips here')+
+      S.settings.perHour+(r.hasTime?'':' · estimated from '+r.estFrom+' past trips on this route')+
       '</div></div><div class="amt" style="color:'+
       (r.perHour>=S.settings.perHour?'var(--grow)':'var(--bad)')+'">$'+r.perHour.toFixed(0)+'</div></div>';
   }else{
-    lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">No time given and not enough history for this area yet — traffic isn\'t counted here.</div></div><div class="amt" style="color:var(--tx3)">—</div></div>';
+    lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">No time given and not enough history for this route yet — traffic isn\'t counted here.</div></div><div class="amt" style="color:var(--tx3)">—</div></div>';
   }
 
   out.innerHTML='<div class="card" style="border-color:'+col+'44">'+
@@ -835,16 +853,18 @@ function tookIt(){
   var mi=parseFloat(document.getElementById('scMi').value);
   var min=parseFloat(document.getElementById('scMin').value);
   var area=document.getElementById('scArea').value;
+  var drop=document.getElementById('scDrop').value;
   if(!(pay>0))return;
   var k=iso(today());
   var had=S.daily[k]!==undefined;
   S.daily[k]=(S.daily[k]||0)+pay;
   // funds are set manually — the app never invents money you did not move
-  S.trips.push({d:k,pay:pay,mi:mi||0,min:min||0,area:area||''});
+  S.trips.push({id:'t'+Date.now(),d:k,pay:pay,mi:mi||0,min:min||0,area:area||'',drop:drop||''});
   save();
   document.getElementById('scPay').value='';
   document.getElementById('scMi').value='';
   document.getElementById('scMin').value='';
+  document.getElementById('scDrop').value='';
   runScore();render();
   toast('Logged '+money2(pay)+' — today is now '+money(S.daily[k]));
 }
@@ -915,6 +935,34 @@ function celebrate(title,body){
     '<div class="sh-s">'+body+'</div></div>'+
     '<button class="btn go" onclick="closeSheet()">Good</button>');
 }
+
+function openTrip(id){
+  var x=S.trips.find(function(t){return t.id===id});
+  if(!x)return;
+  sheet('<div class="sh-t">Fix this trip</div><div class="sh-s">Logged '+x.d+'.</div>'+
+    '<div class="field"><label class="f">Pay</label><input id="txPay" type="number" inputmode="decimal" value="'+x.pay+'"></div>'+
+    '<div class="field"><label class="f">Miles</label><input id="txMi" type="number" inputmode="decimal" value="'+x.mi+'"></div>'+
+    '<div class="field"><label class="f">Minutes</label><input id="txMin" type="number" inputmode="decimal" value="'+(x.min||'')+'"></div>'+
+    '<div class="field"><label class="f">Pickup area</label><input id="txArea" value="'+(x.area||'')+'"></div>'+
+    '<div class="field"><label class="f">Drop-off area</label><input id="txDrop" value="'+(x.drop||'')+'"></div>'+
+    '<div class="warnbox">This fixes the trip record for territory learning only. It does not change '+x.d+'\'s logged earnings — edit that from History if it needs to change too.</div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveTrip(\''+id+'\')">Save</button>'+
+    '<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delTrip(\''+id+'\')">Delete this trip</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveTrip(id){
+  var x=S.trips.find(function(t){return t.id===id});if(!x)return;
+  var pay=parseFloat(document.getElementById('txPay').value);
+  var mi=parseFloat(document.getElementById('txMi').value);
+  var min=parseFloat(document.getElementById('txMin').value);
+  if(isNaN(pay)||pay<0){document.getElementById('txPay').style.borderColor='var(--bad)';return}
+  if(isNaN(mi)||mi<0){document.getElementById('txMi').style.borderColor='var(--bad)';return}
+  x.pay=pay;x.mi=mi;x.min=isNaN(min)?0:min;
+  x.area=document.getElementById('txArea').value;
+  x.drop=document.getElementById('txDrop').value;
+  save();closeSheet();render();
+}
+function delTrip(id){S.trips=S.trips.filter(function(t){return t.id!==id});save();closeSheet();render()}
 
 function openFunds(){
   sheet('<div class="sh-t">Vehicle reserve</div><div class="sh-s">What you\'ve actually put aside. Never added to on its own.</div>'+
