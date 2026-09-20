@@ -267,6 +267,12 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
     <div class="row"><div><div class="nm">Daphne Serrano</div><div class="mt">DCF Hartford</div></div>
     <a href="tel:8609374170" class="btn sm" style="text-decoration:none">Call</a></div>
   </div>
+
+  <h2>Legacy tasks</h2>
+  <div id="legacyList"></div>
+  <button class="btn" onclick="openLegacy(null)">+ Add a Legacy task</button>
+  <div class="tiny">The recovery specialist / credentialing track — separate from DCF, since it's your own path, not the guardianship case.</div>
+
   <h2>Record of contact</h2>
   <div class="card" id="logList"></div>
   <button class="btn" style="margin-top:10px" onclick="openContact()">Add an entry</button>
@@ -355,9 +361,15 @@ var DEF={
     {id:'edu',  n:'Educational statement',      note:'Via Mr. Escobar',              due:'',           done:true},
     {id:'stubs',n:'Pay stubs',                  note:'',                             due:'',           done:true}
   ],
+  legacyItems:[
+    {id:'adv1', n:'Advocacy Unlimited RSS Application', due:'',
+     note:'Recovery Support Specialist Training and Certification via Advocacy Unlimited\'s Recovery University — state-authorized, free, no CCAR fee. Next action: call 860-505-7581 or 1-800-573-6929, ask for the application and the next Recovery University cohort date.',
+     done:false}
+  ],
   contacts:[],
   payments:[],      // {id, date, billId, label, amount} — obligations actually paid
   needs:[],         // {id, date, label, amount} — cat food, school supplies, unavoidable stuff
+  otherIncome:[],   // {id, date, label, amount} — trading wins, side cash: counts toward survival, not the driving floor
   bills:[
     {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · balance $540.39 · brother covers $120/mo'},
     {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · on payment plan'},
@@ -392,8 +404,10 @@ if(!S.seen)S.seen={};
 if(!S.goals)S.goals=DEF.goals;
 if(!S.rentPaidAmt)S.rentPaidAmt={};
 if(!S.dcfItems)S.dcfItems=DEF.dcfItems;
+if(!S.legacyItems)S.legacyItems=DEF.legacyItems;
 if(!S.payments)S.payments=[];
 if(!S.needs)S.needs=[];
+if(!S.otherIncome)S.otherIncome=[];
 /* migrate old dcf checkbox map into the new item list, once */
 if(!S.seen.dcfMigrated){
   if(S.dcf){S.dcfItems.forEach(function(it){if(S.dcf[it.id]!==undefined)it.done=!!S.dcf[it.id]})}
@@ -436,6 +450,7 @@ function last14(){var hit=0,logged=0;
   // percentage is of days you actually logged — unlogged days aren't failures
   return{hit:hit,logged:logged,pct:logged>0?Math.round(hit/logged*100):0}}
 function milestones(){var m=S.paidArrears>0&&WEEKLY_ARR()>0?Math.floor(S.paidArrears/WEEKLY_ARR()):0;
+  S.legacyItems.forEach(function(i){if(i.done)m++});
   S.dcfItems.forEach(function(i){if(i.done)m++});return m}
 function daysUntil(day){var t=today(),y=t.getFullYear(),mo=t.getMonth();
   var d=new Date(y,mo,day);if(d<new Date(y,mo,t.getDate()))d=new Date(y,mo+1,day);
@@ -568,6 +583,12 @@ function render(){
     if(dl>14)return;
     up.push({n:i.n,a:'DCF',d:(dl<0?Math.abs(dl)+' days overdue':dl+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dl<=3?'urgent':dl<=7?'soon':''});
   });
+  S.legacyItems.forEach(function(i){
+    if(i.done||!i.due)return;
+    var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+    if(dl>14)return;
+    up.push({n:i.n,a:'Legacy',d:(dl<0?Math.abs(dl)+' days overdue':dl+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dl<=3?'urgent':dl<=7?'soon':''});
+  });
   up.push({n:'Landlord arrears',a:money(WEEKLY_ARR()),d:'Every Friday',cls:''});
   up.sort(function(a,b){var r={urgent:0,soon:1,'':2};return r[a.cls]-r[b.cls]});
   document.getElementById('nextUp').innerHTML=up.slice(0,6).map(function(u){
@@ -666,24 +687,8 @@ function render(){
     '<div class="btnrow"><button class="btn sm" onclick="openSettings()">Edit targets</button></div>';
 
   // DCF — real deadlines with countdowns, same weight as bills
-  document.getElementById('dcfList').innerHTML=S.dcfItems.map(function(i){
-    var pill='',cls='';
-    if(!i.done && i.due){
-      var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
-      if(dl<0){pill='<span class="pill p-red">'+Math.abs(dl)+'d overdue</span>';cls='urgent'}
-      else if(dl<=3){pill='<span class="pill p-red">'+dl+'d</span>';cls='urgent'}
-      else if(dl<=7){pill='<span class="pill p-amb">'+dl+'d</span>';cls='soon'}
-      else{pill='<span class="pill p-gry">'+dl+'d</span>'}
-    }
-    var dueTxt = i.due ? new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-    var meta=[dueTxt?'Due '+dueTxt:'', i.note||''].filter(Boolean).join(' · ');
-    return '<div class="card'+(i.done?' done':(cls?' '+cls:''))+'">'+
-      '<div class="chk'+(i.done?' on':'')+'" style="padding:0" onclick="togDcf(\''+i.id+'\')">'+
-      '<div class="box">'+(i.done?'✓':'')+'</div><div style="flex:1">'+
-      '<div class="nm">'+esc(i.n)+pill+'</div>'+
-      (meta?'<div class="mt">'+esc(meta)+'</div>':'')+'</div></div>'+
-      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();openDcf(\''+i.id+'\')">Edit</button></div>'+
-      '</div>'}).join('');
+  document.getElementById('dcfList').innerHTML=renderChecklist(S.dcfItems,'togDcf','openDcf');
+  document.getElementById('legacyList').innerHTML=renderChecklist(S.legacyItems,'togLegacy','openLegacy');
 
   document.getElementById('logList').innerHTML=S.contacts.length?
     S.contacts.slice().reverse().map(function(c){
@@ -742,9 +747,10 @@ function render(){
   document.getElementById('survivalCard').innerHTML=
     '<div class="card" style="margin-top:14px">'+
     '<div class="row"><div><div class="nm">'+monthName+' still to cover</div>'+
-    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' coming in</div></div>'+
+    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' coming in'+(ms.other>0?' (incl. '+money(ms.other)+' other)':'')+'</div></div>'+
     '<div class="amt" style="color:'+(ms.gap>0?'var(--warn)':'var(--grow)')+'">'+money(ms.gap)+'</div></div>'+
     '<div class="mt" style="margin-top:8px">This is what has to come from driving this month.</div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="openOtherIncome()">Log other income</button></div>'+
     '</div>';
 
   document.getElementById('weekSlice').innerHTML = ws.items.length ?
@@ -823,6 +829,27 @@ function resetRentMonth(){
 }
 function doResetRent(){var k=mKey(today());S.rentPaidAmt[k]=0;save();closeSheet();render()}
 function togBill(k){S.billsPaid[k]=!S.billsPaid[k];save();render()}
+function renderChecklist(items,togFn,editFn){
+  return items.map(function(i){
+    var pill='',cls='';
+    if(!i.done && i.due){
+      var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+      if(dl<0){pill='<span class="pill p-red">'+Math.abs(dl)+'d overdue</span>';cls='urgent'}
+      else if(dl<=3){pill='<span class="pill p-red">'+dl+'d</span>';cls='urgent'}
+      else if(dl<=7){pill='<span class="pill p-amb">'+dl+'d</span>';cls='soon'}
+      else{pill='<span class="pill p-gry">'+dl+'d</span>'}
+    }
+    var dueTxt = i.due ? new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    var meta=[dueTxt?'Due '+dueTxt:'', i.note||''].filter(Boolean).join(' · ');
+    return '<div class="card'+(i.done?' done':(cls?' '+cls:''))+'">'+
+      '<div class="chk'+(i.done?' on':'')+'" style="padding:0" onclick="'+togFn+'(\''+i.id+'\')">'+
+      '<div class="box">'+(i.done?'✓':'')+'</div><div style="flex:1">'+
+      '<div class="nm">'+esc(i.n)+pill+'</div>'+
+      (meta?'<div class="mt">'+esc(meta)+'</div>':'')+'</div></div>'+
+      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();'+editFn+'(\''+i.id+'\')">Edit</button></div>'+
+      '</div>'}).join('');
+}
+
 function openDcf(id){
   var it=id?S.dcfItems.find(function(x){return x.id===id}):null;
   sheet('<div class="sh-t">'+(it?'Edit item':'Add a checklist item')+'</div><div class="sh-s">Give it a due date and it counts down like a bill.</div>'+
@@ -843,6 +870,28 @@ function saveDcf(id){
   save();closeSheet();render();
 }
 function delDcf(id){S.dcfItems=S.dcfItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
+
+function openLegacy(id){
+  var it=id?S.legacyItems.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(it?'Edit item':'Add a Legacy task')+'</div><div class="sh-s">The recovery/credentialing track — separate from DCF.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="ln" placeholder="e.g. Advocacy Unlimited RSS Application" value="'+esc(it?it.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Note / next action (optional)</label><input id="lnote" placeholder="e.g. call 860-505-7581" value="'+esc(it?(it.note||''):'')+'"></div>'+
+    '<div class="field"><label class="f">Due date (optional)</label><input id="ldue" type="date" value="'+esc(it?(it.due||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveLegacy(\''+(id||'')+'\')">Save</button>'+
+    (it?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delLegacy(\''+id+'\')">Delete this item</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveLegacy(id){
+  var n=document.getElementById('ln').value.trim();
+  if(!n){document.getElementById('ln').style.borderColor='var(--bad)';return}
+  var note=document.getElementById('lnote').value.trim();
+  var due=document.getElementById('ldue').value;
+  if(id){var it=S.legacyItems.find(function(x){return x.id===id});it.n=n;it.note=note;it.due=due}
+  else{S.legacyItems.push({id:'lg'+Date.now(),n:n,note:note,due:due,done:false})}
+  save();closeSheet();render();
+}
+function delLegacy(id){S.legacyItems=S.legacyItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
+function togLegacy(id){var it=S.legacyItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
 
 function togDcf(id){var it=S.dcfItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
 
@@ -1133,6 +1182,11 @@ function needsThisMonth(){
   S.needs.forEach(function(n){if(n.date&&n.date.slice(0,7)===k)s+=n.amount});
   return s;
 }
+function otherIncomeThisMonth(){
+  var k=mKey(today()),s=0;
+  S.otherIncome.forEach(function(o){if(o.date&&o.date.slice(0,7)===k)s+=o.amount});
+  return s;
+}
 function monthSurvival(){
   var t=today(),k=mKey(t);
   var billsTotal=0;
@@ -1141,8 +1195,9 @@ function monthSurvival(){
   var arrearsLeft=Math.max(0,S.arrears-S.paidArrears);
   var extrasLeft=0;S.extras.forEach(function(x){if(!x.done)extrasLeft+=x.a});
   var owed=billsTotal+rentLeft+arrearsLeft+extrasLeft;
-  var income=monthlyIncome();
-  return{owed:owed,income:income,gap:Math.max(0,owed-income),
+  var other=otherIncomeThisMonth();
+  var income=monthlyIncome()+other;
+  return{owed:owed,income:income,other:other,gap:Math.max(0,owed-income),
     bills:billsTotal,rent:rentLeft,arrears:arrearsLeft,extras:extrasLeft};
 }
 /* what's actually due in the next 7 days */
@@ -1406,6 +1461,26 @@ function savePayBill(billId){
   save();closeSheet();render();
   toast('Logged '+money2(amt)+' to '+(b?b.n:'bill'));
 }
+function openOtherIncome(){
+  sheet('<div class="sh-t">Log other income</div><div class="sh-s">Trading, side cash, anything real that isn\'t from driving. Counts toward this month\'s gap, not your weekly driving floor — those stay separate on purpose.</div>'+
+    '<div class="field"><label class="f">What was it</label><input id="oiLabel" placeholder="e.g. trading gain"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="oiAmt" type="number" inputmode="decimal" placeholder="100"></div>'+
+    '<div class="field"><label class="f">Date</label><input id="oiDate" type="date" value="'+iso(today())+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveOtherIncome()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('oiLabel');if(e)e.focus()},220);
+}
+function saveOtherIncome(){
+  var l=document.getElementById('oiLabel').value.trim();
+  var a=parseFloat(document.getElementById('oiAmt').value);
+  var d=document.getElementById('oiDate').value||iso(today());
+  if(!l){document.getElementById('oiLabel').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<=0){document.getElementById('oiAmt').style.borderColor='var(--bad)';return}
+  S.otherIncome.push({id:'oi'+Date.now(),date:d,label:l,amount:a});
+  save();closeSheet();render();
+  toast('Logged '+money2(a)+' — counts toward the month, not the driving floor');
+}
+
 function openNeed(){
   sheet('<div class="sh-t">Log a necessity</div><div class="sh-s">Cat food, school supplies, household stuff — things you can\'t skip. Not takeout, not gas, not anything you don\'t want tracked.</div>'+
     '<div class="field"><label class="f">What was it</label><input id="ndLabel" placeholder="e.g. cat food + litter"></div>'+
@@ -1484,6 +1559,7 @@ function openTreeDetail(){
   var weeksHit=weeksLogged.filter(function(w){return w.hit}).length;
   var weeksCounted=weeksLogged.length;
   var arrPct=S.arrears?Math.round(Math.min(100,S.paidArrears/S.arrears*100)):0;
+  var legacyDone=S.legacyItems.filter(function(i){return i.done}).length;
   var goalsTxt = S.goals.length ?
     S.goals.map(function(g){var p=g.target?Math.round(g.current/g.target*100):0;return g.n+' '+p+'%'}).join(' · ')
     : 'no goals set';
@@ -1523,7 +1599,7 @@ function openTreeDetail(){
 
     '<h2 style="margin-top:18px">Legacy branch — long-term stability</h2>'+
     '<div class="mini"><i style="width:'+arrPct+'%"></i></div>'+
-    '<div class="note">Arrears '+arrPct+'% paid off · vehicle reserve '+money(S.carReserve)+' · '+goalsTxt+'</div>'+
+    '<div class="note">Arrears '+arrPct+'% paid off · vehicle reserve '+money(S.carReserve)+' · '+S.legacyItems.length+' legacy task'+(S.legacyItems.length===1?'':'s')+' ('+legacyDone+' done) · '+goalsTxt+'</div>'+
 
     '<h2 style="margin-top:18px">Leaves — last 14 days</h2>'+
     leafRows+
