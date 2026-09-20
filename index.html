@@ -13,19 +13,15 @@
 --tx:#e8e6df;--tx2:#9aa39c;--tx3:#6b746d;
 --grow:#5DCAA5;--grow-d:#1D9E75;
 --warn:#EF9F27;--bad:#E24B4A;--gold:#FAC775;
---bark:#7a5c3f;--leaf:#5DCAA5;
 --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
 }
 body{background:var(--bg);color:var(--tx);font:400 16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
 padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 80px);overflow-x:hidden}
 .wrap{max-width:520px;margin:0 auto;padding:0 16px}
 .hide{display:none!important}
-
 header{padding:20px 0 8px}
 .brand{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--tx3);font-weight:500}
 .date{font-size:13px;color:var(--tx2);margin-top:2px}
-
-/* HERO */
 .hero{background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:20px;margin-top:14px}
 .hero-lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:500}
 .hero-num{font-size:44px;font-weight:600;letter-spacing:-.02em;line-height:1.05;margin:6px 0 2px;font-variant-numeric:tabular-nums}
@@ -34,8 +30,6 @@ header{padding:20px 0 8px}
 .bar>i{display:block;height:100%;border-radius:99px;background:var(--grow);transition:width .6s cubic-bezier(.22,1,.36,1)}
 .bar.warn>i{background:var(--warn)}.bar.bad>i{background:var(--bad)}
 .hero-row{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
-
-/* TREE */
 .treewrap{margin-top:14px;background:var(--s1);border:1px solid var(--bd);border-radius:18px;padding:8px 8px 14px;position:relative;overflow:hidden}
 #tree{display:block;width:100%;height:auto}
 .tree-cap{text-align:center;font-size:12px;color:var(--tx3);margin-top:2px}
@@ -43,7 +37,6 @@ header{padding:20px 0 8px}
 .ts{text-align:center}
 .ts b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
 .ts span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
-
 @keyframes sway{0%,100%{transform:rotate(-.5deg)}50%{transform:rotate(.5deg)}}
 @keyframes fadein{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 @keyframes fall{to{transform:translateY(46px) rotate(90deg);opacity:0}}
@@ -53,14 +46,11 @@ header{padding:20px 0 8px}
   .leaf{animation:fadein .5s ease-out backwards}
   .falling{animation:fall 2.4s ease-in forwards}
 }
-
-/* SECTIONS */
 h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3);font-weight:500;margin:26px 0 10px}
 .card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:10px}
 .card.urgent{border-color:rgba(226,75,74,.45)}
 .card.soon{border-color:rgba(239,159,39,.4)}
 .card.done{opacity:.5}
-
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .row+.row{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
 .nm{font-size:15px;font-weight:500}
@@ -71,36 +61,27 @@ h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx3)
 .p-amb{background:rgba(239,159,39,.16);color:var(--gold)}
 .p-grn{background:rgba(93,202,165,.15);color:var(--grow)}
 .p-gry{background:var(--s3);color:var(--tx3)}
-
-/* PROGRESS MINI */
 .mini{height:5px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:10px}
 .mini>i{display:block;height:100%;background:var(--grow);border-radius:99px;transition:width .5s}
 .mini.gold>i{background:var(--gold)}
-
-/* BUTTONS */
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .btn{display:block;width:100%;padding:14px;border-radius:12px;background:var(--s3);border:1px solid var(--bd2);
 font-size:15px;font-weight:500;text-align:center;transition:transform .1s}
 .btn:active{transform:scale(.98)}
 .btn.go{background:var(--grow-d);border-color:var(--grow-d);color:#04211a;font-weight:600}
 .btn.sm{padding:9px 14px;width:auto;font-size:13px;border-radius:10px}
-.btnrow{display:flex;gap:8px;margin-top:12px}
-
-input,select{font:inherit;width:100%;padding:13px 14px;border-radius:12px;background:var(--s2);
+.btnrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+input,select,textarea{font:inherit;width:100%;padding:13px 14px;border-radius:12px;background:var(--s2);
 border:1px solid var(--bd2);color:var(--tx);font-variant-numeric:tabular-nums}
-input:focus,select:focus{outline:none;border-color:var(--grow)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--grow)}
 label.f{display:block;font-size:12px;color:var(--tx3);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
 .field+.field{margin-top:14px}
-
-/* CHECK */
 .chk{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:11px 0}
 .chk+.chk{border-top:1px solid var(--bd)}
 .box{flex:0 0 21px;height:21px;border-radius:6px;border:1.5px solid var(--bd2);margin-top:1px;
 display:flex;align-items:center;justify-content:center;font-size:12px;transition:.15s}
 .chk.on .box{background:var(--grow);border-color:var(--grow);color:#04211a}
 .chk.on .nm{text-decoration:line-through;color:var(--tx3)}
-
-/* TABS */
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,16,14,.92);
 backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 border-top:1px solid var(--bd);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:50}
@@ -109,10 +90,7 @@ border-top:1px solid var(--bd);padding:8px 0 calc(8px + env(safe-area-inset-bott
 text-transform:uppercase;color:var(--tx3);font-weight:500}
 .tab b{display:block;font-size:19px;line-height:1.2;margin-bottom:1px;font-weight:400}
 .tab.on{color:var(--grow)}
-
-/* SHEET */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;
-justify-content:center;padding:0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:0}
 .sheet{background:var(--s1);width:100%;max-width:520px;border-radius:22px 22px 0 0;
 overscroll-behavior:contain;-webkit-overflow-scrolling:touch;will-change:transform;
 padding:22px 18px calc(28px + env(safe-area-inset-bottom));border-top:1px solid var(--bd2);
@@ -120,42 +98,32 @@ max-height:88vh;overflow-y:auto}
 .sh-t{font-size:19px;font-weight:600;margin-bottom:4px}
 .sh-s{font-size:13px;color:var(--tx2);margin-bottom:18px}
 .grab{width:36px;height:4px;background:var(--bd2);border-radius:99px;margin:0 auto 16px}
-
 .log-row{display:flex;justify-content:space-between;padding:9px 0;font-size:14px;border-bottom:1px solid var(--bd)}
 .log-row span{color:var(--tx2)}
 .log-row b{font-variant-numeric:tabular-nums;font-weight:500}
-
 .note{font-size:13px;color:var(--tx2);line-height:1.6;margin-top:10px}
 .warnbox{background:rgba(226,75,74,.1);border:1px solid rgba(226,75,74,.3);border-radius:12px;padding:13px;margin-top:12px;font-size:13px;line-height:1.55}
 .okbox{background:rgba(93,202,165,.09);border:1px solid rgba(93,202,165,.28);border-radius:12px;padding:13px;margin-top:12px;font-size:13px;line-height:1.55}
 .tiny{font-size:11px;color:var(--tx3);margin-top:14px;line-height:1.5;text-align:center}
 a{color:var(--grow)}
-
-/* AREA CHIPS */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip{font-size:12px;padding:6px 12px;border-radius:99px;background:var(--s3);
-border:1px solid var(--bd2);color:var(--tx2);white-space:nowrap}
+.chip{font-size:12px;padding:6px 12px;border-radius:99px;background:var(--s3);border:1px solid var(--bd2);color:var(--tx2);white-space:nowrap}
 .chip:active{background:var(--grow-d);color:#04211a}
-
-/* TOAST */
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:200;
-background:var(--grow-d);color:#04211a;font-size:14px;font-weight:500;
-padding:12px 18px;border-radius:99px;max-width:90vw;text-align:center;
-box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
+background:var(--grow-d);color:#04211a;font-size:14px;font-weight:500;padding:12px 18px;border-radius:99px;
+max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
 .toast.out{animation:tout .5s ease-in forwards}
 @keyframes tin{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes tout{to{opacity:0;transform:translate(-50%,10px)}}
 </style>
 </head>
 <body>
-
 <div class="wrap">
 <header>
   <div class="brand">Guardian · Trader · Legacy</div>
   <div class="date" id="today"></div>
 </header>
 
-<!-- ============ HOME ============ -->
 <section id="v-home">
   <div class="hero">
     <div class="hero-lbl">This week</div>
@@ -191,7 +159,6 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <div id="nextUp"></div>
 </section>
 
-<!-- ============ SCORE ============ -->
 <section id="v-score" class="hide">
   <h2>Score an order</h2>
   <div class="card">
@@ -220,7 +187,6 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <div class="tiny">Tap a trip to fix or delete it.</div>
 </section>
 
-<!-- ============ MONEY ============ -->
 <section id="v-money" class="hide">
   <h2>The one that doesn't move</h2>
   <div class="card" id="rentCard"></div>
@@ -240,6 +206,11 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <div id="extraList"></div>
   <button class="btn" onclick="openExtra(null)">+ Add something owed</button>
 
+  <h2>Necessities this month</h2>
+  <div class="card" id="needsCard"></div>
+  <button class="btn" onclick="openNeed()">+ Log a necessity</button>
+  <div class="tiny">Cat food, school supplies, household basics. Not takeout, not gas, not anything you'd rather not track.</div>
+
   <h2>Funds building</h2>
   <div class="card" id="fundCard"></div>
 
@@ -247,21 +218,15 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <div id="goalList"></div>
   <button class="btn" onclick="openGoal(null)">+ Add a goal</button>
 
-  <h2>Necessities this month</h2>
-  <div class="card" id="needsCard"></div>
-  <button class="btn" onclick="openNeed()">+ Log a necessity</button>
-  <div class="tiny">Cat food, school supplies, household basics. Not takeout, not gas, not anything you'd rather not track.</div>
-
   <h2>Your targets</h2>
   <div class="card" id="settingsCard"></div>
-  <div class="tiny">These are your numbers, not fixed rules. Change them the moment something in real life changes — a new floor, a new rent amount, a new arrears pace.</div>
 </section>
 
-<!-- ============ DCF ============ -->
 <section id="v-dcf" class="hide">
   <h2>Licensing checklist</h2>
   <div id="dcfList"></div>
   <button class="btn" onclick="openDcf(null)">+ Add a checklist item</button>
+
   <h2>Caseworker</h2>
   <div class="card">
     <div class="row"><div><div class="nm">Daphne Serrano</div><div class="mt">DCF Hartford</div></div>
@@ -279,10 +244,10 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
   <div class="tiny">Log DCF calls and landlord contact both. Dates and plain facts — this is the record that holds up if anyone asks later.</div>
 </section>
 
-<!-- ============ HISTORY ============ -->
 <section id="v-hist" class="hide">
   <h2>Last 14 days</h2>
   <div class="card" id="histList"></div>
+
   <h2>Totals</h2>
   <div class="card" id="totCard"></div>
 
@@ -320,37 +285,46 @@ box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .3s ease-out}
 <div id="sheet"></div>
 
 <script>
-/* ---------- storage (works on GitHub Pages; degrades gracefully) ---------- */
+/* ---------- storage ---------- */
 var mem={},saveBroken=false;
 function load(){try{var r=localStorage.getItem('gtl2');return r?JSON.parse(r):null}catch(e){return mem.d||null}}
 function save(){
   try{localStorage.setItem('gtl2',JSON.stringify(S));saveBroken=false}
-  catch(e){
-    mem.d=S;
-    if(!saveBroken){
-      saveBroken=true;
-      try{toast('Could not save to this device — export a backup now')}catch(_){}
-    }
-  }
+  catch(e){mem.d=S;if(!saveBroken){saveBroken=true;try{toast('Could not save to this device — export a backup now')}catch(_){}}}
 }
-/* escape user text before it goes into innerHTML or a value="" attribute */
 function esc(s){return String(s==null?'':s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   .replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-/* escape for use inside a double-quoted JS string in an onclick attribute */
 function escAttr(s){return String(s==null?'':s)
   .replace(/\\/g,'\\\\').replace(/"/g,'\\&quot;').replace(/'/g,'&#39;')
   .replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
+/* ---------- defaults ---------- */
 var DEF={
-  daily:{},              // 'YYYY-MM-DD': amount
-  arrears:2200,          // updated after Friday payment
-  paidArrears:0,
+  daily:{},
+  arrears:2200, paidArrears:0,
   carReserve:0,
-  showFund:0,
-  billsPaid:{},          // 'billid-YYYY-MM': true
-  rentPaidAmt:{},        // 'YYYY-MM': dollars paid toward that month's rent
-  dcf:{ins:false,refs:false,land:false,fp:true,phys:true,train:true,edu:true,stubs:true},
+  billPaidAmt:{},      // 'billid-YYYY-MM': dollars paid toward that bill this cycle
+  rentPaidAmt:{},       // 'YYYY-MM': dollars paid toward rent
+  bills:[
+    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · brother covers part'},
+    {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · ON A PLAN'},
+    {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work'},
+    {id:'cable',n:'Cable / internet',a:80,    day:15,note:''},
+    {id:'laun', n:'Laundry',         a:25,    day:1, note:''},
+    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:''},
+    {id:'weed', n:'Weed',            a:360,   day:1, note:'Every 3-4 days, $36-60/half oz depending on dispensary'}
+  ],
+  income:[
+    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'},
+    {id:'bro', n:'Brother · AT&T', a:120,note:'Monthly'}
+  ],
+  extras:[
+    {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — a prior payment gap',done:false}
+  ],
+  goals:[
+    {id:'g1',n:'Oct 11 show',target:200,current:0,date:'2026-10-11'}
+  ],
   dcfItems:[
     {id:'ins',  n:'Auto insurance copy',        note:'Must be the new Geico policy', due:'2026-09-10', done:false},
     {id:'refs', n:'Three reference letters',    note:'To Daphne Serrano',            due:'2026-09-10', done:false},
@@ -367,63 +341,32 @@ var DEF={
      done:false}
   ],
   contacts:[],
-  payments:[],      // {id, date, billId, label, amount} — obligations actually paid
-  needs:[],         // {id, date, label, amount} — cat food, school supplies, unavoidable stuff
-  otherIncome:[],   // {id, date, label, amount} — trading wins, side cash: counts toward survival, not the driving floor
-  bills:[
-    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · balance $540.39 · brother covers $120/mo'},
-    {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · on payment plan'},
-    {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work'},
-    {id:'cable',n:'Cable / internet',a:80,    day:15,note:''},
-    {id:'laun', n:'Laundry',         a:25,    day:15,note:''},
-    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:15,note:''}
-  ],
-  income:[
-    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'},
-    {id:'bro', n:'Brother · AT&T', a:120,note:'Monthly'}
-  ],
-  extras:[
-    {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — theirs owed for a prior payment gap',done:false}
-  ],
-  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,perMile:1.20,perHour:20},
-  goals:[
-    {id:'g1',n:'Oct 11 show',target:200,current:0,date:'2026-10-11'}
-  ],
+  payments:[],
+  needs:[],
+  otherIncome:[],
   trips:[],
-  seen:{}
+  seen:{},
+  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,perMile:1.20,perHour:20}
 };
 var S=Object.assign({},DEF,load()||{});
-S.dcf=Object.assign({},DEF.dcf,S.dcf||{});
+S.settings=Object.assign({},DEF.settings,S.settings||{});
 if(!S.bills)S.bills=DEF.bills;
 if(!S.income)S.income=DEF.income;
 if(!S.extras)S.extras=DEF.extras;
-if(!S.settings)S.settings=DEF.settings;
-S.settings=Object.assign({},DEF.settings,S.settings);
-if(!S.trips)S.trips=[];
-if(!S.seen)S.seen={};
 if(!S.goals)S.goals=DEF.goals;
-if(!S.rentPaidAmt)S.rentPaidAmt={};
 if(!S.dcfItems)S.dcfItems=DEF.dcfItems;
 if(!S.legacyItems)S.legacyItems=DEF.legacyItems;
+if(!S.contacts)S.contacts=[];
 if(!S.payments)S.payments=[];
 if(!S.needs)S.needs=[];
 if(!S.otherIncome)S.otherIncome=[];
-/* migrate old dcf checkbox map into the new item list, once */
-if(!S.seen.dcfMigrated){
-  if(S.dcf){S.dcfItems.forEach(function(it){if(S.dcf[it.id]!==undefined)it.done=!!S.dcf[it.id]})}
-  S.seen.dcfMigrated=1;save();
-}
+if(!S.trips)S.trips=[];
+if(!S.seen)S.seen={};
+if(!S.rentPaidAmt)S.rentPaidAmt={};
+if(!S.billPaidAmt)S.billPaidAmt={};
 S.trips.forEach(function(x,i){if(!x.id)x.id='legacy'+i+'-'+Date.now()});
-/* migrate old single show-fund fields into the new goals list, once */
-if(!S.seen.goalsMigrated){
-  if(S.showFund>0 && S.goals[0]){S.goals[0].current=S.showFund}
-  S.seen.goalsMigrated=1;save();
-}
-/* one-time: earlier builds auto-swept $40 into funds on backfilled days, inventing money
-   that was never set aside. Reset both to zero once so they reflect reality. */
-if(!S.seen.fundsFixed){S.carReserve=0;S.showFund=0;S.seen.fundsFixed=1;save()}
 
-/* ---------- constants: real numbers ---------- */
+/* ---------- constants ---------- */
 function FLOOR(){return S.settings.floor}
 function RENT(){return S.settings.rent}
 function WEEKLY_ARR(){return S.settings.weeklyArr}
@@ -435,6 +378,21 @@ function mKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function weekStart(d){var x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(0,0,0,0);return x}
 function money(n){return '$'+Math.round(n).toLocaleString()}
 function money2(n){return '$'+n.toFixed(2)}
+function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+function daysUntil(day){var t=today(),y=t.getFullYear(),mo=t.getMonth();
+  var d=new Date(y,mo,day);if(d<new Date(y,mo,t.getDate()))d=new Date(y,mo+1,day);
+  return Math.round((d-new Date(y,mo,t.getDate()))/86400000)}
+function daysUntilDate(y,m,d){var t=new Date();t.setHours(0,0,0,0);
+  var x=new Date(y,m,d);return Math.max(0,Math.round((x-t)/86400000))}
+
+/* ---------- bill remaining-balance helpers (the actual fix) ---------- */
+function billKey(id,d){return id+'-'+mKey(d||today())}
+function billRemaining(b,d){
+  var paid=S.billPaidAmt[billKey(b.id,d)]||0;
+  return Math.max(0,b.a-paid);
+}
+function billPaidThisCycle(b,d){return S.billPaidAmt[billKey(b.id,d)]||0}
+function billIsPaid(b,d){return billRemaining(b,d)<=0}
 
 /* ---------- computed ---------- */
 function weekTotal(){var s=weekStart(today()),t=0;
@@ -447,14 +405,11 @@ function streak(){var c=0,d=new Date();
 function last14(){var hit=0,logged=0;
   for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var v=S.daily[iso(d)];
     if(v!==undefined){logged++;if(v>=100)hit++}}
-  // percentage is of days you actually logged — unlogged days aren't failures
   return{hit:hit,logged:logged,pct:logged>0?Math.round(hit/logged*100):0}}
 function milestones(){var m=S.paidArrears>0&&WEEKLY_ARR()>0?Math.floor(S.paidArrears/WEEKLY_ARR()):0;
+  S.dcfItems.forEach(function(i){if(i.done)m++});
   S.legacyItems.forEach(function(i){if(i.done)m++});
-  S.dcfItems.forEach(function(i){if(i.done)m++});return m}
-function daysUntil(day){var t=today(),y=t.getFullYear(),mo=t.getMonth();
-  var d=new Date(y,mo,day);if(d<new Date(y,mo,t.getDate()))d=new Date(y,mo+1,day);
-  return Math.round((d-new Date(y,mo,t.getDate()))/86400000)}
+  return m}
 function pastWeeksFloorHits(n){
   var out=[],ws=weekStart(today());
   for(var w=0;w<n;w++){
@@ -462,10 +417,48 @@ function pastWeeksFloorHits(n){
     var tot=0,anyLogged=false;
     for(var i=0;i<7;i++){var d=new Date(s);d.setDate(s.getDate()+i);var v=S.daily[iso(d)];
       if(v!==undefined){tot+=v;anyLogged=true}}
-    var lbl=s.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    out.push({label:lbl,total:tot,hit:tot>=FLOOR(),anyLogged:anyLogged});
+    out.push({label:s.toLocaleDateString('en-US',{month:'short',day:'numeric'}),total:tot,hit:tot>=FLOOR(),anyLogged:anyLogged});
   }
   return out.reverse();
+}
+function monthlyIncome(){var s=0;S.income.forEach(function(i){s += /assistance/i.test(i.n) ? i.a*2 : i.a});return s}
+function otherIncomeThisMonth(){var k=mKey(today()),s=0;S.otherIncome.forEach(function(o){if(o.date&&o.date.slice(0,7)===k)s+=o.amount});return s}
+function monthSurvival(){
+  var t=today(),k=mKey(t);
+  var billsTotal=0;
+  S.bills.forEach(function(b){billsTotal+=billRemaining(b,t)});
+  var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[k]||0));
+  var arrearsLeft=Math.max(0,S.arrears-S.paidArrears);
+  var extrasLeft=0;S.extras.forEach(function(x){if(!x.done)extrasLeft+=x.a});
+  var owed=billsTotal+rentLeft+arrearsLeft+extrasLeft;
+  var other=otherIncomeThisMonth();
+  var income=monthlyIncome()+other;
+  return{owed:owed,income:income,other:other,gap:Math.max(0,owed-income),
+    bills:billsTotal,rent:rentLeft,arrears:arrearsLeft,extras:extrasLeft};
+}
+function weekSlice(){
+  var t=today(),items=[],total=0;
+  S.bills.forEach(function(b){
+    var rem=billRemaining(b,t);if(rem<=0)return;
+    var dd=daysUntil(b.day);
+    if(dd<=7){items.push({n:b.n,a:rem,d:dd});total+=rem}
+  });
+  var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
+  if(rentLeft>0){var dr=daysUntil(S.settings.rentDay);if(dr<=7){items.push({n:'Rent',a:rentLeft,d:dr});total+=rentLeft}}
+  if(Math.max(0,S.arrears-S.paidArrears)>0){
+    var dFri=(5-t.getDay()+7)%7;
+    items.push({n:'Landlord arrears',a:WEEKLY_ARR(),d:dFri});total+=WEEKLY_ARR();
+  }
+  items.sort(function(a,b){return a.d-b.d});
+  return{items:items,total:total};
+}
+function dowAverages(){
+  var buckets=[[],[],[],[],[],[],[]];
+  Object.keys(S.daily).forEach(function(k){var d=new Date(k+'T00:00:00');buckets[d.getDay()].push(S.daily[k])});
+  return buckets.map(function(vals,i){
+    var avg=vals.length?vals.reduce(function(a,b){return a+b},0)/vals.length:null;
+    return{day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i],avg:avg,n:vals.length};
+  });
 }
 
 /* ---------- TREE ---------- */
@@ -473,49 +466,36 @@ function drawTree(){
   var st=streak(), mi=milestones(), c=last14();
   var svg=document.getElementById('tree');
   var CX=190, GY=280;
-
   var trunkH=Math.min(150, 52+mi*6);
   var trunkTop=GY-trunkH;
   var trunkW=Math.max(13, Math.min(26, 13+mi*.55));
   var rootN=Math.min(9, 2+Math.floor(st/2));
   var leafN=Math.max(6, Math.round(c.pct/100*46));
   var wilt=c.logged>=4 && c.pct<40;
-
   var h='';
-  // ground
   h+='<ellipse cx="'+CX+'" cy="'+GY+'" rx="118" ry="9" fill="#1b211e"/>';
-  // roots
   for(var i=0;i<rootN;i++){
-    var side=i%2?1:-1, t=Math.floor(i/2)+1;
-    var len=26+t*13, dip=8+t*4;
+    var side=i%2?1:-1, tt=Math.floor(i/2)+1;
+    var len=26+tt*13, dip=8+tt*4;
     h+='<path d="M'+CX+' '+GY+' Q'+(CX+side*len*.55)+' '+(GY+dip)+' '+(CX+side*len)+' '+(GY+dip+5)+
-       '" fill="none" stroke="#5c452f" stroke-width="'+(3.4-t*.45).toFixed(1)+'" stroke-linecap="round" opacity=".85"/>';
+       '" fill="none" stroke="#5c452f" stroke-width="'+(3.4-tt*.45).toFixed(1)+'" stroke-linecap="round" opacity=".85"/>';
   }
-  // trunk
   h+='<path d="M'+(CX-trunkW/2)+' '+GY+' Q'+(CX-trunkW/2.6)+' '+(trunkTop+trunkH/2)+' '+(CX-trunkW/3.4)+' '+trunkTop+
      ' L'+(CX+trunkW/3.4)+' '+trunkTop+' Q'+(CX+trunkW/2.6)+' '+(trunkTop+trunkH/2)+' '+(CX+trunkW/2)+' '+GY+' Z" fill="#7a5c3f"/>';
   h+='<path d="M'+(CX-2)+' '+(GY-6)+' L'+(CX-1)+' '+(trunkTop+8)+'" stroke="#6a4f36" stroke-width="2" fill="none" opacity=".6"/>';
-
   h+='<g id="canopy">';
-  // three branches: guardian(left) trader(right) legacy(up)
-  var br=[
-    {dx:-72,dy:-34,label:'G'},
-    {dx: 72,dy:-34,label:'T'},
-    {dx:  0,dy:-64,label:'L'}
-  ];
+  var br=[{dx:-72,dy:-34},{dx:72,dy:-34},{dx:0,dy:-64}];
   br.forEach(function(b){
     var ex=CX+b.dx, ey=trunkTop+b.dy;
     h+='<path d="M'+CX+' '+(trunkTop+10)+' Q'+(CX+b.dx*.45)+' '+(trunkTop+b.dy*.35-6)+' '+ex+' '+ey+
        '" fill="none" stroke="#7a5c3f" stroke-width="'+Math.max(4,Math.min(9,4+mi*.22)).toFixed(1)+'" stroke-linecap="round"/>';
   });
-  // canopy blobs
   var blobs=[[CX,trunkTop-52,44],[CX-66,trunkTop-24,33],[CX+66,trunkTop-24,33],[CX-32,trunkTop-62,30],[CX+32,trunkTop-62,30]];
   var canopyOp = wilt? .30 : .55;
   blobs.forEach(function(b,i){
     if(i>0 && c.pct<30) return;
     h+='<circle cx="'+b[0]+'" cy="'+b[1]+'" r="'+b[2]+'" fill="'+(wilt?'#4a6b5e':'#1D9E75')+'" opacity="'+canopyOp+'"/>';
   });
-  // leaves
   for(var j=0;j<leafN;j++){
     var ang=(j/leafN)*Math.PI*2 + j*.7;
     var rad=26+((j*37)%62);
@@ -525,19 +505,12 @@ function drawTree(){
     h+='<circle class="leaf" cx="'+lx.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="'+(4.4+(j%3)).toFixed(1)+
        '" fill="'+col+'" style="animation-delay:'+(j*.022).toFixed(2)+'s"/>';
   }
-  // falling leaves when wilting
-  if(wilt){
-    for(var k=0;k<4;k++){
-      h+='<circle class="leaf falling" cx="'+(CX-50+k*34)+'" cy="'+(trunkTop-14)+'" r="4" fill="#BA7517" style="animation-delay:'+(k*.5)+'s"/>';
-    }
-  }
+  if(wilt){for(var k=0;k<4;k++){h+='<circle class="leaf falling" cx="'+(CX-50+k*34)+'" cy="'+(trunkTop-14)+'" r="4" fill="#BA7517" style="animation-delay:'+(k*.5)+'s"/>'}}
   h+='</g>';
   svg.innerHTML=h;
-
   document.getElementById('stStreak').textContent=st;
   document.getElementById('stMile').textContent=mi;
   document.getElementById('stCons').textContent=c.pct+'%';
-
   var cap;
   if(c.logged===0) cap='Log a day to start it growing';
   else if(wilt) cap='Thinning out. It comes back the day you do.';
@@ -548,11 +521,31 @@ function drawTree(){
 }
 
 /* ---------- RENDER ---------- */
+function renderChecklist(items,togFn,editFn){
+  return items.map(function(i){
+    var pill='',cls='';
+    if(!i.done && i.due){
+      var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+      if(dl<0){pill='<span class="pill p-red">'+Math.abs(dl)+'d overdue</span>';cls='urgent'}
+      else if(dl<=3){pill='<span class="pill p-red">'+dl+'d</span>';cls='urgent'}
+      else if(dl<=7){pill='<span class="pill p-amb">'+dl+'d</span>';cls='soon'}
+      else{pill='<span class="pill p-gry">'+dl+'d</span>'}
+    }
+    var dueTxt = i.due ? new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    var meta=[dueTxt?'Due '+dueTxt:'', i.note||''].filter(Boolean).join(' · ');
+    return '<div class="card'+(i.done?' done':(cls?' '+cls:''))+'">'+
+      '<div class="chk'+(i.done?' on':'')+'" style="padding:0" onclick="'+togFn+'(\''+i.id+'\')">'+
+      '<div class="box">'+(i.done?'✓':'')+'</div><div style="flex:1">'+
+      '<div class="nm">'+esc(i.n)+pill+'</div>'+
+      (meta?'<div class="mt">'+esc(meta)+'</div>':'')+'</div></div>'+
+      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();'+editFn+'(\''+i.id+'\')">Edit</button></div>'+
+      '</div>'}).join('');
+}
+
 function render(){
   var t=today();
   document.getElementById('today').textContent=t.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  // hero
   var wt=weekTotal(), pct=Math.min(100,wt/FLOOR()*100);
   document.getElementById('wkNum').textContent=money(wt);
   document.getElementById('wkSub').textContent='of '+money(FLOOR())+' floor';
@@ -565,29 +558,50 @@ function render(){
 
   drawTree();
 
-  // NEXT UP
+  var ms=monthSurvival(), ws=weekSlice();
+  var monthName=t.toLocaleDateString('en-US',{month:'long'});
+  document.getElementById('survivalCard').innerHTML=
+    '<div class="card" style="margin-top:14px">'+
+    '<div class="row"><div><div class="nm">'+monthName+' still to cover</div>'+
+    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' coming in'+(ms.other>0?' (incl. '+money(ms.other)+' other)':'')+'</div></div>'+
+    '<div class="amt" style="color:'+(ms.gap>0?'var(--warn)':'var(--grow)')+'">'+money(ms.gap)+'</div></div>'+
+    '<div class="mt" style="margin-top:8px">This is what has to come from driving this month.</div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="openOtherIncome()">Log other income</button></div>'+
+    '</div>';
+
+  document.getElementById('weekSlice').innerHTML = ws.items.length ?
+    '<div class="card"><div class="row"><div><div class="nm">Due in the next 7 days</div>'+
+    '<div class="mt">'+ws.items.length+' item'+(ws.items.length===1?'':'s')+'</div></div>'+
+    '<div class="amt">'+money(ws.total)+'</div></div>'+
+    ws.items.map(function(i){
+      var col=i.d<=2?'var(--bad)':i.d<=4?'var(--warn)':'var(--tx2)';
+      return '<div class="log-row"><span>'+esc(i.n)+'</span>'+
+        '<b style="color:'+col+';font-weight:400">'+money(i.a)+' · '+(i.d===0?'today':i.d===1?'tomorrow':'in '+i.d+'d')+'</b></div>'
+    }).join('')+'</div>'
+    : '<div class="card"><div class="mt">Nothing due in the next 7 days.</div></div>';
+
   var up=[];
   var dR=daysUntil(S.settings.rentDay);
   var rentKey=mKey(t), rentPaidSoFar=S.rentPaidAmt[rentKey]||0, rentRemaining=Math.max(0,RENT()-rentPaidSoFar);
   if(rentRemaining>0){
     up.push({n:t.toLocaleDateString('en-US',{month:'long'})+' rent',a:money(rentRemaining)+(rentPaidSoFar>0?' left':''),d:dR+' days · by the '+ordinal(S.settings.rentDay),cls:dR<=5?'urgent':dR<=10?'soon':''});
   }
-  S.bills.slice(0,3).forEach(function(b){
+  S.bills.forEach(function(b){
+    var rem=billRemaining(b,t);if(rem<=0)return;
     var dd=daysUntil(b.day);
-    if(S.billsPaid[b.id+'-'+mKey(t)])return;
-    up.push({n:b.n,a:money2(b.a),d:dd+' days · by the '+b.day+'th',cls:dd<=3?'urgent':dd<=7?'soon':''});
+    up.push({n:b.n,a:money2(rem)+(billPaidThisCycle(b,t)>0?' left':''),d:dd+' days · by the '+b.day+'th',cls:dd<=3?'urgent':dd<=7?'soon':''});
   });
   S.dcfItems.forEach(function(i){
     if(i.done||!i.due)return;
-    var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
-    if(dl>14)return;
-    up.push({n:i.n,a:'DCF',d:(dl<0?Math.abs(dl)+' days overdue':dl+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dl<=3?'urgent':dl<=7?'soon':''});
+    var dlx=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+    if(dlx>14)return;
+    up.push({n:i.n,a:'DCF',d:(dlx<0?Math.abs(dlx)+' days overdue':dlx+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dlx<=3?'urgent':dlx<=7?'soon':''});
   });
   S.legacyItems.forEach(function(i){
     if(i.done||!i.due)return;
-    var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
-    if(dl>14)return;
-    up.push({n:i.n,a:'Legacy',d:(dl<0?Math.abs(dl)+' days overdue':dl+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dl<=3?'urgent':dl<=7?'soon':''});
+    var dlx=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+    if(dlx>14)return;
+    up.push({n:i.n,a:'Legacy',d:(dlx<0?Math.abs(dlx)+' days overdue':dlx+' days')+' · '+new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),cls:dlx<=3?'urgent':dlx<=7?'soon':''});
   });
   up.push({n:'Landlord arrears',a:money(WEEKLY_ARR()),d:'Every Friday',cls:''});
   up.sort(function(a,b){var r={urgent:0,soon:1,'':2};return r[a.cls]-r[b.cls]});
@@ -595,8 +609,6 @@ function render(){
     return '<div class="card '+u.cls+'"><div class="row"><div><div class="nm">'+esc(u.n)+'</div>'+
       '<div class="mt">'+esc(u.d)+'</div></div><div class="amt">'+u.a+'</div></div></div>'}).join('');
 
-  // MONEY: rent — real remaining balance, payments logged same as arrears
-  var rentPct=RENT()?Math.min(100,rentPaidSoFar/RENT()*100):0;
   document.getElementById('rentCard').innerHTML = rentRemaining<=0 ?
     '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent<span class="pill p-grn">Paid in full</span></div>'+
     '<div class="mt">'+money(rentPaidSoFar)+' paid toward '+money(RENT())+'. Resets next month.</div></div>'+
@@ -606,10 +618,9 @@ function render(){
     '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent'+(dR<=7?'<span class="pill p-red">'+dR+'d</span>':'')+
     '</div><div class="mt">'+(rentPaidSoFar>0?money(rentPaidSoFar)+' paid so far · ':'')+'Late fee after the '+ordinal(S.settings.rentDay)+'.</div></div>'+
     '<div class="amt">'+money(rentRemaining)+'</div></div>'+
-    (rentPaidSoFar>0?'<div class="mini"><i style="width:'+rentPct+'%"></i></div>':'')+
+    (rentPaidSoFar>0?'<div class="mini"><i style="width:'+Math.min(100,rentPaidSoFar/RENT()*100)+'%"></i></div>':'')+
     '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log a payment</button></div>';
 
-  // arrears
   var rem=Math.max(0,S.arrears-S.paidArrears);
   var apct=S.arrears?Math.min(100,S.paidArrears/S.arrears*100):0;
   var wks=Math.ceil(rem/WEEKLY_ARR());
@@ -621,27 +632,28 @@ function render(){
     '<div class="btnrow"><button class="btn sm" onclick="payArr()">Log a payment</button>'+
     '<button class="btn sm" onclick="setArr()">Set balance</button></div>';
 
-  // bills — tap to edit, checkbox-style paid toggle via pill
+  // BILLS — now with real remaining balance, this is the actual bug fix
   document.getElementById('billList').innerHTML=S.bills.map(function(b){
-    var key=b.id+'-'+mKey(t), paid=!!S.billsPaid[key], dd=daysUntil(b.day);
-    var cls=paid?'done':dd<=3?'urgent':dd<=7?'soon':'';
-    var pill=paid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
+    var remB=billRemaining(b,t), paidSoFar=billPaidThisCycle(b,t), dd=daysUntil(b.day), isPaid=remB<=0;
+    var cls=isPaid?'done':dd<=3?'urgent':dd<=7?'soon':'';
+    var pill=isPaid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
              dd<=7?'<span class="pill p-amb">'+dd+'d</span>':'<span class="pill p-gry">'+dd+'d</span>';
     return '<div class="card '+cls+'"><div class="row" onclick="openBill(\''+b.id+'\')"><div>'+
-      '<div class="nm">'+esc(b.n)+pill+'</div><div class="mt">By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+'</div></div>'+
-      '<div class="amt">'+money2(b.a)+'</div></div>'+
+      '<div class="nm">'+esc(b.n)+pill+'</div><div class="mt">By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+
+      (paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'')+'</div></div>'+
+      '<div class="amt">'+money2(remB)+'</div></div>'+
+      (paidSoFar>0?'<div class="mini"><i style="width:'+Math.min(100,paidSoFar/b.a*100)+'%"></i></div>':'')+
       '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();openPayBill(\''+b.id+'\')">'+
-      (paid?'Paid':'Log payment')+'</button>'+
-      '<button class="btn sm" onclick="event.stopPropagation();togBill(\''+key+'\')">'+
-      (paid?'Mark unpaid':'Mark paid')+'</button></div></div>'}).join('');
-  // income — fully editable
+      (isPaid?'Paid':'Log payment')+'</button>'+
+      '<button class="btn sm" onclick="event.stopPropagation();resetBillCycle(\''+b.id+'\')">'+
+      (isPaid?'Undo':'Mark paid')+'</button></div></div>'}).join('');
+
   document.getElementById('inCard').innerHTML=S.income.map(function(inc){
     return '<div class="row" onclick="openIncome(\''+inc.id+'\')"><div><div class="nm">'+esc(inc.n)+
       '</div><div class="mt">'+esc(inc.note||'')+'</div></div><div class="amt">'+money2(inc.a)+'</div></div>'}).join('')+
     '<div class="row" style="opacity:.55"><div><div class="nm">Driving floor</div>'+
-    '<div class="mt">Your target, not tracked income — $100/day, Wed–Sun minimum</div></div><div class="amt">$600/wk</div></div>';
+    '<div class="mt">Your target, not tracked income — $100/day, Wed–Sun minimum</div></div><div class="amt">'+money(FLOOR())+'/wk</div></div>';
 
-  // extras / other things owed
   document.getElementById('extraList').innerHTML=(S.extras.length?S.extras.map(function(x){
     return '<div class="card'+(x.done?' done':'')+'"><div class="row" onclick="openExtra(\''+x.id+'\')"><div>'+
       '<div class="nm">'+esc(x.n)+(x.done?'<span class="pill p-grn">Resolved</span>':'')+'</div>'+
@@ -650,24 +662,6 @@ function render(){
       (x.done?'Mark unresolved':'Mark resolved')+'</button></div></div>'}).join(''):
     '<div class="mt">Nothing extra right now.</div>');
 
-  // vehicle reserve — its own simple editable number, not date-bound
-  document.getElementById('fundCard').innerHTML=
-    '<div class="row"><div><div class="nm">Vehicle reserve</div><div class="mt">The Civic is the whole operation</div></div>'+
-    '<div class="amt">'+money(S.carReserve)+'</div></div>'+
-    '<div class="btnrow"><button class="btn sm" onclick="openFunds()">Set balance</button></div>';
-
-  // goals — open-ended, any name, any amount, any real date
-  document.getElementById('goalList').innerHTML=(S.goals.length?S.goals.map(function(g){
-    var pct=g.target?Math.min(100,g.current/g.target*100):0;
-    var dleft=Math.round((new Date(g.date+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
-    var dtxt=isNaN(dleft)?'':dleft<0?'past date':dleft+' day'+(dleft===1?'':'s');
-    return '<div class="card"><div class="row" onclick="openGoal(\''+g.id+'\')"><div>'+
-      '<div class="nm">'+esc(g.n)+'</div><div class="mt">Goal '+money(g.target)+(dtxt?' · '+dtxt:'')+'</div></div>'+
-      '<div class="amt">'+money(g.current)+'</div></div>'+
-      '<div class="mini gold"><i style="width:'+pct+'%"></i></div></div>'}).join(''):
-    '<div class="mt">No goals yet — add one below.</div>');
-
-  // necessities this month
   var mk2=mKey(t), needsMo=S.needs.filter(function(n){return n.date&&n.date.slice(0,7)===mk2});
   var needsSum=0;needsMo.forEach(function(n){needsSum+=n.amount});
   document.getElementById('needsCard').innerHTML=
@@ -679,6 +673,21 @@ function render(){
         '<span>'+esc(n.label)+'</span><b style="font-weight:400">'+money2(n.amount)+'</b></div>'}).join('')
       :'<div class="mt" style="margin-top:8px">Nothing logged yet this month.</div>');
 
+  document.getElementById('fundCard').innerHTML=
+    '<div class="row"><div><div class="nm">Vehicle reserve</div><div class="mt">The Civic is the whole operation</div></div>'+
+    '<div class="amt">'+money(S.carReserve)+'</div></div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="openFunds()">Set balance</button></div>';
+
+  document.getElementById('goalList').innerHTML=(S.goals.length?S.goals.map(function(g){
+    var gp=g.target?Math.min(100,g.current/g.target*100):0;
+    var dleft=Math.round((new Date(g.date+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
+    var dtxt=isNaN(dleft)?'':dleft<0?'past date':dleft+' day'+(dleft===1?'':'s');
+    return '<div class="card"><div class="row" onclick="openGoal(\''+g.id+'\')"><div>'+
+      '<div class="nm">'+esc(g.n)+'</div><div class="mt">Goal '+money(g.target)+(dtxt?' · '+dtxt:'')+'</div></div>'+
+      '<div class="amt">'+money(g.current)+'</div></div>'+
+      '<div class="mini gold"><i style="width:'+gp+'%"></i></div></div>'}).join(''):
+    '<div class="mt">No goals yet — add one below.</div>');
+
   document.getElementById('settingsCard').innerHTML=
     '<div class="row"><div><div class="nm">Weekly driving floor</div></div><div class="amt">'+money(S.settings.floor)+'</div></div>'+
     '<div class="row"><div><div class="nm">Rent</div><div class="mt">Due by the '+ordinal(S.settings.rentDay)+'</div></div><div class="amt">'+money(S.settings.rent)+'</div></div>'+
@@ -686,7 +695,6 @@ function render(){
     '<div class="row"><div><div class="nm">Order minimums</div><div class="mt">Used to score orders</div></div><div class="amt">$'+S.settings.perMile.toFixed(2)+'/mi · $'+S.settings.perHour+'/hr</div></div>'+
     '<div class="btnrow"><button class="btn sm" onclick="openSettings()">Edit targets</button></div>';
 
-  // DCF — real deadlines with countdowns, same weight as bills
   document.getElementById('dcfList').innerHTML=renderChecklist(S.dcfItems,'togDcf','openDcf');
   document.getElementById('legacyList').innerHTML=renderChecklist(S.legacyItems,'togLegacy','openLegacy');
 
@@ -699,7 +707,6 @@ function render(){
         '<b style="max-width:64%;text-align:right;font-weight:400">'+head+'</b></div>'}).join('')
     :'<div class="mt">No entries yet. Log every call and visit — this is the record that holds up later.</div>';
 
-  // history — every day back to your earliest entry, not just 14
   var allKeys=Object.keys(S.daily).sort();
   var earliest = allKeys.length ? new Date(allKeys[0]+'T00:00:00') : new Date();
   var cursor=new Date(); cursor.setHours(0,0,0,0);
@@ -707,10 +714,7 @@ function render(){
   while(cursor>=earliest && guard<800){
     var k2=iso(cursor), v=S.daily[k2];
     var mLabel=cursor.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    if(mLabel!==lastMonth){
-      rows+='<div class="mt" style="margin:14px 0 4px;letter-spacing:.08em;text-transform:uppercase">'+mLabel+'</div>';
-      lastMonth=mLabel;
-    }
+    if(mLabel!==lastMonth){rows+='<div class="mt" style="margin:14px 0 4px;letter-spacing:.08em;text-transform:uppercase">'+mLabel+'</div>';lastMonth=mLabel}
     rows+='<div class="log-row" style="cursor:pointer" onclick="openLog(\''+k2+'\')"><span>'+
       cursor.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</span>'+
       '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
@@ -741,55 +745,28 @@ function render(){
   if(lb){lb.textContent = S.seen.lastBackup ?
     'Last backup: '+new Date(S.seen.lastBackup).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
     : 'No backup yet.'}
-  // survival numbers — the month's shape, and the week you actually close
-  var ms=monthSurvival(), ws=weekSlice();
-  var monthName=t.toLocaleDateString('en-US',{month:'long'});
-  document.getElementById('survivalCard').innerHTML=
-    '<div class="card" style="margin-top:14px">'+
-    '<div class="row"><div><div class="nm">'+monthName+' still to cover</div>'+
-    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' coming in'+(ms.other>0?' (incl. '+money(ms.other)+' other)':'')+'</div></div>'+
-    '<div class="amt" style="color:'+(ms.gap>0?'var(--warn)':'var(--grow)')+'">'+money(ms.gap)+'</div></div>'+
-    '<div class="mt" style="margin-top:8px">This is what has to come from driving this month.</div>'+
-    '<div class="btnrow"><button class="btn sm" onclick="openOtherIncome()">Log other income</button></div>'+
-    '</div>';
-
-  document.getElementById('weekSlice').innerHTML = ws.items.length ?
-    '<div class="card"><div class="row"><div><div class="nm">Due in the next 7 days</div>'+
-    '<div class="mt">'+ws.items.length+' item'+(ws.items.length===1?'':'s')+'</div></div>'+
-    '<div class="amt">'+money(ws.total)+'</div></div>'+
-    ws.items.map(function(i){
-      var col=i.d<=2?'var(--bad)':i.d<=4?'var(--warn)':'var(--tx2)';
-      return '<div class="log-row"><span>'+esc(i.n)+'</span>'+
-        '<b style="color:'+col+';font-weight:400">'+money(i.a)+' · '+(i.d===0?'today':i.d===1?'tomorrow':'in '+i.d+'d')+'</b></div>'
-    }).join('')+'</div>'
-    : '<div class="card"><div class="mt">Nothing due in the next 7 days.</div></div>';
 
   renderProjection();
 
-
-  // territory — per city, so it's useful from the first trip in a new area
-  var cities={};
+  var areas={};
   S.trips.forEach(function(x){
     if(!(x.mi>0))return;
     var rate=x.min>0?x.min/x.mi:null;
     [x.start,x.area,x.drop].forEach(function(c){
-      var k=areaKey(c);if(!k)return;
-      if(!cities[k])cities[k]={n:0,rateSum:0,rateN:0,pay:0,mi:0,name:c.trim()};
-      cities[k].n++;
-      if(rate!==null){cities[k].rateSum+=rate;cities[k].rateN++}
-      cities[k].pay+=x.pay;cities[k].mi+=x.mi;
+      var k=(c||'').trim().toLowerCase();if(!k)return;
+      if(!areas[k])areas[k]={n:0,rateSum:0,rateN:0,pay:0,mi:0,name:c.trim()};
+      areas[k].n++;if(rate!==null){areas[k].rateSum+=rate;areas[k].rateN++}
+      areas[k].pay+=x.pay;areas[k].mi+=x.mi;
     });
   });
-  var cKeys=Object.keys(cities).sort(function(a,b){return cities[b].n-cities[a].n});
+  var cKeys=Object.keys(areas).sort(function(a,b){return areas[b].n-areas[a].n});
   document.getElementById('terrCard').innerHTML = cKeys.length ?
-    cKeys.map(function(k){var c=cities[k];
-      var mpm=c.rateN>0?(c.rateSum/c.rateN):null;
+    cKeys.map(function(k){var c=areas[k];var mpm=c.rateN>0?(c.rateSum/c.rateN):null;
       return '<div class="row"><div><div class="nm">'+esc(c.name)+'</div><div class="mt">'+c.n+' trip'+(c.n===1?'':'s')+
         (mpm?' · '+mpm.toFixed(1)+' min per mile':' · no times logged yet')+'</div></div>'+
         '<div class="amt">$'+(c.pay/c.mi).toFixed(2)+'<span style="font-size:11px;color:var(--tx3)">/mi</span></div></div>'}).join('')
     : '<div class="mt">No trips logged yet. Score an order, tap "Took it," and this fills in as you go.</div>';
 
-  // recent trips — tappable to fix or delete
   var recentTrips=S.trips.slice(-10).reverse();
   document.getElementById('tripList').innerHTML = recentTrips.length ?
     recentTrips.map(function(x){
@@ -802,120 +779,8 @@ function render(){
 
   checkRewards();
 }
-function daysUntilDate(y,m,d){var t=new Date();t.setHours(0,0,0,0);
-  var x=new Date(y,m,d);return Math.max(0,Math.round((x-t)/86400000))}
-function ordinal(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
 
-/* ---------- ACTIONS ---------- */
-function payRent(){
-  sheet('<div class="sh-t">Log a rent payment</div><div class="sh-s">Add whatever you actually paid — partial or full.</div>'+
-    '<div class="field"><label class="f">Amount</label><input id="rpAmt" type="number" inputmode="decimal" placeholder="500"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveRentPay()">Log payment</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('rpAmt');if(e)e.focus()},220);
-}
-function saveRentPay(){
-  var e=document.getElementById('rpAmt'),n=parseFloat(e.value);
-  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
-  var k=mKey(today());
-  S.rentPaidAmt[k]=(S.rentPaidAmt[k]||0)+n;
-  save();closeSheet();render();
-}
-function resetRentMonth(){
-  sheet('<div class="sh-t">Reset this month\'s rent?</div><div class="sh-s">Clears the amount logged as paid for '+
-    today().toLocaleDateString('en-US',{month:'long'})+'. Use this if you logged something by mistake.</div>'+
-    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doResetRent()">Reset it</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function doResetRent(){var k=mKey(today());S.rentPaidAmt[k]=0;save();closeSheet();render()}
-function togBill(k){S.billsPaid[k]=!S.billsPaid[k];save();render()}
-function renderChecklist(items,togFn,editFn){
-  return items.map(function(i){
-    var pill='',cls='';
-    if(!i.done && i.due){
-      var dl=Math.round((new Date(i.due+'T00:00:00')-new Date(new Date().toDateString()))/86400000);
-      if(dl<0){pill='<span class="pill p-red">'+Math.abs(dl)+'d overdue</span>';cls='urgent'}
-      else if(dl<=3){pill='<span class="pill p-red">'+dl+'d</span>';cls='urgent'}
-      else if(dl<=7){pill='<span class="pill p-amb">'+dl+'d</span>';cls='soon'}
-      else{pill='<span class="pill p-gry">'+dl+'d</span>'}
-    }
-    var dueTxt = i.due ? new Date(i.due+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-    var meta=[dueTxt?'Due '+dueTxt:'', i.note||''].filter(Boolean).join(' · ');
-    return '<div class="card'+(i.done?' done':(cls?' '+cls:''))+'">'+
-      '<div class="chk'+(i.done?' on':'')+'" style="padding:0" onclick="'+togFn+'(\''+i.id+'\')">'+
-      '<div class="box">'+(i.done?'✓':'')+'</div><div style="flex:1">'+
-      '<div class="nm">'+esc(i.n)+pill+'</div>'+
-      (meta?'<div class="mt">'+esc(meta)+'</div>':'')+'</div></div>'+
-      '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();'+editFn+'(\''+i.id+'\')">Edit</button></div>'+
-      '</div>'}).join('');
-}
-
-function openDcf(id){
-  var it=id?S.dcfItems.find(function(x){return x.id===id}):null;
-  sheet('<div class="sh-t">'+(it?'Edit item':'Add a checklist item')+'</div><div class="sh-s">Give it a due date and it counts down like a bill.</div>'+
-    '<div class="field"><label class="f">What is it</label><input id="dn" placeholder="e.g. Home safety inspection" value="'+esc(it?it.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Note (optional)</label><input id="dnote" placeholder="e.g. schedule with Daphne" value="'+esc(it?(it.note||''):'')+'"></div>'+
-    '<div class="field"><label class="f">Due date (optional)</label><input id="ddue" type="date" value="'+esc(it?(it.due||''):'')+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveDcf(\''+(id||'')+'\')">Save</button>'+
-    (it?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delDcf(\''+id+'\')">Delete this item</button>':'')+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function saveDcf(id){
-  var n=document.getElementById('dn').value.trim();
-  if(!n){document.getElementById('dn').style.borderColor='var(--bad)';return}
-  var note=document.getElementById('dnote').value.trim();
-  var due=document.getElementById('ddue').value;
-  if(id){var it=S.dcfItems.find(function(x){return x.id===id});it.n=n;it.note=note;it.due=due}
-  else{S.dcfItems.push({id:'d'+Date.now(),n:n,note:note,due:due,done:false})}
-  save();closeSheet();render();
-}
-function delDcf(id){S.dcfItems=S.dcfItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
-
-function openLegacy(id){
-  var it=id?S.legacyItems.find(function(x){return x.id===id}):null;
-  sheet('<div class="sh-t">'+(it?'Edit item':'Add a Legacy task')+'</div><div class="sh-s">The recovery/credentialing track — separate from DCF.</div>'+
-    '<div class="field"><label class="f">What is it</label><input id="ln" placeholder="e.g. Advocacy Unlimited RSS Application" value="'+esc(it?it.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Note / next action (optional)</label><input id="lnote" placeholder="e.g. call 860-505-7581" value="'+esc(it?(it.note||''):'')+'"></div>'+
-    '<div class="field"><label class="f">Due date (optional)</label><input id="ldue" type="date" value="'+esc(it?(it.due||''):'')+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveLegacy(\''+(id||'')+'\')">Save</button>'+
-    (it?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delLegacy(\''+id+'\')">Delete this item</button>':'')+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function saveLegacy(id){
-  var n=document.getElementById('ln').value.trim();
-  if(!n){document.getElementById('ln').style.borderColor='var(--bad)';return}
-  var note=document.getElementById('lnote').value.trim();
-  var due=document.getElementById('ldue').value;
-  if(id){var it=S.legacyItems.find(function(x){return x.id===id});it.n=n;it.note=note;it.due=due}
-  else{S.legacyItems.push({id:'lg'+Date.now(),n:n,note:note,due:due,done:false})}
-  save();closeSheet();render();
-}
-function delLegacy(id){S.legacyItems=S.legacyItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
-function togLegacy(id){var it=S.legacyItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
-
-function togDcf(id){var it=S.dcfItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
-
-function sheet(html){document.getElementById('sheet').innerHTML=
-  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="theSheet"><div class="grab"></div>'+html+'</div></div>';
-  document.body.style.overflow='hidden';
-  var el=document.getElementById('theSheet'),y0=null,dy=0;
-  el.addEventListener('touchstart',function(e){
-    if(el.scrollTop>0)return;            // only start a drag when already at the top
-    y0=e.touches[0].clientY;dy=0;
-  },{passive:true});
-  el.addEventListener('touchmove',function(e){
-    if(y0===null)return;
-    dy=e.touches[0].clientY-y0;
-    if(dy>0){el.style.transform='translateY('+dy+'px)';el.style.transition='none'}
-  },{passive:true});
-  el.addEventListener('touchend',function(){
-    if(y0===null)return;
-    el.style.transition='transform .25s ease-out';
-    if(dy>90){closeSheet()}else{el.style.transform=''}
-    y0=null;dy=0;
-  });
-}
-/* ---------- BILLS: add / edit / delete ---------- */
+/* ---------- ACTIONS: bills (fixed) ---------- */
 function openBill(id){
   var b=id?S.bills.find(function(x){return x.id===id}):null;
   sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">Name, amount, and day of month it\'s due.</div>'+
@@ -941,7 +806,43 @@ function saveBill(id){
 }
 function delBill(id){S.bills=S.bills.filter(function(x){return x.id!==id});save();closeSheet();render()}
 
-/* ---------- INCOME: add / edit / delete ---------- */
+/* Log a real partial or full payment — this is the fix: it ADDS to what's paid this cycle,
+   it never marks the bill fully paid unless the total actually covers it. */
+function openPayBill(billId){
+  var b=S.bills.find(function(x){return x.id===billId});
+  if(!b)return;
+  var already=billPaidThisCycle(b,today());
+  sheet('<div class="sh-t">Log a payment</div><div class="sh-s">'+esc(b.n)+' — '+money2(billRemaining(b,today()))+' left of '+money2(b.a)+
+    (already>0?' ('+money2(already)+' already logged this cycle)':'')+'. Enter what you\'re sending now — partial is fine.</div>'+
+    '<div class="field"><label class="f">Amount you\'re paying now</label><input id="pbAmt" type="number" inputmode="decimal" placeholder="'+billRemaining(b,today()).toFixed(2)+'"></div>'+
+    '<div class="field"><label class="f">Date</label><input id="pbDate" type="date" value="'+iso(today())+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="savePayBill(\''+billId+'\')">Log it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('pbAmt');if(e)e.focus()},220);
+}
+function savePayBill(billId){
+  var b=S.bills.find(function(x){return x.id===billId});
+  var amt=parseFloat(document.getElementById('pbAmt').value);
+  var dt=document.getElementById('pbDate').value||iso(today());
+  if(isNaN(amt)||amt<=0){document.getElementById('pbAmt').style.borderColor='var(--bad)';return}
+  var dObj=new Date(dt+'T00:00:00');
+  var key=billKey(billId,dObj);
+  S.billPaidAmt[key]=(S.billPaidAmt[key]||0)+amt;
+  S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b?b.n:'Bill',amount:amt});
+  save();closeSheet();render();
+  var remAfter=b?billRemaining(b,dObj):0;
+  toast('Logged '+money2(amt)+' to '+(b?b.n:'bill')+' — '+(remAfter<=0?'paid in full':money2(remAfter)+' left'));
+}
+/* quick toggle: force this cycle to fully paid, or undo back to zero paid */
+function resetBillCycle(billId){
+  var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  var key=billKey(billId,today());
+  var isPaid=billIsPaid(b,today());
+  S.billPaidAmt[key]=isPaid?0:b.a;
+  save();render();
+}
+
+/* ---------- income / extras / needs / goals (unchanged from prior builds) ---------- */
 function openIncome(id){
   var inc=id?S.income.find(function(x){return x.id===id}):null;
   sheet('<div class="sh-t">'+(inc?'Edit income source':'Add income source')+'</div><div class="sh-s">Anything that reliably comes in.</div>'+
@@ -964,10 +865,9 @@ function saveIncome(id){
 }
 function delIncome(id){S.income=S.income.filter(function(x){return x.id!==id});save();closeSheet();render()}
 
-/* ---------- EXTRAS: add / edit / delete / resolve ---------- */
 function openExtra(id){
   var x=id?S.extras.find(function(e){return e.id===id}):null;
-  sheet('<div class="sh-t">'+(x?'Edit item':'Add something owed')+'</div><div class="sh-s">One-off things that don\'t fit rent or a regular bill — old balances, side debts, anything.</div>'+
+  sheet('<div class="sh-t">'+(x?'Edit item':'Add something owed')+'</div><div class="sh-s">One-off things that don\'t fit rent or a regular bill.</div>'+
     '<div class="field"><label class="f">What is it</label><input id="xn" placeholder="e.g. Eversource shortfall" value="'+esc(x?x.n:'')+'"></div>'+
     '<div class="field"><label class="f">Amount</label><input id="xa" type="number" inputmode="decimal" placeholder="0" value="'+(x?x.a:'')+'"></div>'+
     '<div class="field"><label class="f">Note (optional)</label><input id="xnote" placeholder="context" value="'+esc(x?(x.note||''):'')+'"></div>'+
@@ -987,6 +887,119 @@ function saveExtra(id){
 }
 function delExtra(id){S.extras=S.extras.filter(function(x){return x.id!==id});save();closeSheet();render()}
 function togExtra(id){var x=S.extras.find(function(e){return e.id===id});x.done=!x.done;save();render()}
+
+function openNeed(){
+  sheet('<div class="sh-t">Log a necessity</div><div class="sh-s">Cat food, school supplies, household stuff. Not takeout, not gas.</div>'+
+    '<div class="field"><label class="f">What was it</label><input id="ndLabel" placeholder="e.g. cat food + litter"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="ndAmt" type="number" inputmode="decimal" placeholder="0"></div>'+
+    '<div class="field"><label class="f">Date</label><input id="ndDate" type="date" value="'+iso(today())+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveNeed()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('ndLabel');if(e)e.focus()},220);
+}
+function saveNeed(){
+  var l=document.getElementById('ndLabel').value.trim();
+  var a=parseFloat(document.getElementById('ndAmt').value);
+  var d=document.getElementById('ndDate').value||iso(today());
+  if(!l){document.getElementById('ndLabel').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<=0){document.getElementById('ndAmt').style.borderColor='var(--bad)';return}
+  S.needs.push({id:'n'+Date.now(),date:d,label:l,amount:a});
+  save();closeSheet();render();
+}
+function delNeed(id){S.needs=S.needs.filter(function(n){return n.id!==id});save();closeSheet();render()}
+function openNeedView(id){
+  var n=S.needs.find(function(x){return x.id===id});if(!n)return;
+  sheet('<div class="sh-t">'+esc(n.label)+'</div><div class="sh-s">'+money2(n.amount)+' · '+esc(n.date)+'</div>'+
+    '<button class="btn sm" style="margin-top:12px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delNeed(\''+id+'\')">Delete</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+}
+
+function openOtherIncome(){
+  sheet('<div class="sh-t">Log other income</div><div class="sh-s">Trading, side cash, anything real that isn\'t from driving. Counts toward this month\'s gap, not your weekly driving floor.</div>'+
+    '<div class="field"><label class="f">What was it</label><input id="oiLabel" placeholder="e.g. trading gain"></div>'+
+    '<div class="field"><label class="f">Amount</label><input id="oiAmt" type="number" inputmode="decimal" placeholder="100"></div>'+
+    '<div class="field"><label class="f">Date</label><input id="oiDate" type="date" value="'+iso(today())+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveOtherIncome()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('oiLabel');if(e)e.focus()},220);
+}
+function saveOtherIncome(){
+  var l=document.getElementById('oiLabel').value.trim();
+  var a=parseFloat(document.getElementById('oiAmt').value);
+  var d=document.getElementById('oiDate').value||iso(today());
+  if(!l){document.getElementById('oiLabel').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<=0){document.getElementById('oiAmt').style.borderColor='var(--bad)';return}
+  S.otherIncome.push({id:'oi'+Date.now(),date:d,label:l,amount:a});
+  save();closeSheet();render();
+  toast('Logged '+money2(a)+' — counts toward the month, not the driving floor');
+}
+
+function openGoal(id){
+  var g=id?S.goals.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(g?'Edit goal':'Add a goal')+'</div><div class="sh-s">Anything you\'re saving toward, with a real date.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="gn" placeholder="e.g. Jadakiss show" value="'+esc(g?g.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Target amount</label><input id="gt" type="number" inputmode="decimal" placeholder="200" value="'+(g?g.target:'')+'"></div>'+
+    '<div class="field"><label class="f">Already saved</label><input id="gc" type="number" inputmode="decimal" placeholder="0" value="'+(g?g.current:0)+'"></div>'+
+    '<div class="field"><label class="f">Target date</label><input id="gd" type="date" value="'+(g?g.date:'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveGoal(\''+(id||'')+'\')">Save</button>'+
+    (g?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delGoal(\''+id+'\')">Delete this goal</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveGoal(id){
+  var n=document.getElementById('gn').value.trim();
+  var tg=parseFloat(document.getElementById('gt').value);
+  var cur=parseFloat(document.getElementById('gc').value);
+  var d=document.getElementById('gd').value;
+  if(!n){document.getElementById('gn').style.borderColor='var(--bad)';return}
+  if(isNaN(tg)||tg<=0){document.getElementById('gt').style.borderColor='var(--bad)';return}
+  if(isNaN(cur)||cur<0)cur=0;
+  if(id){var g=S.goals.find(function(x){return x.id===id});g.n=n;g.target=tg;g.current=cur;g.date=d}
+  else{S.goals.push({id:'g'+Date.now(),n:n,target:tg,current:cur,date:d})}
+  save();closeSheet();render();
+}
+function delGoal(id){S.goals=S.goals.filter(function(x){return x.id!==id});save();closeSheet();render()}
+
+/* ---------- rent, arrears, settings, funds ---------- */
+function payRent(){
+  sheet('<div class="sh-t">Log a rent payment</div><div class="sh-s">Add whatever you actually paid — partial or full.</div>'+
+    '<div class="field"><label class="f">Amount</label><input id="rpAmt" type="number" inputmode="decimal" placeholder="500"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveRentPay()">Log payment</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('rpAmt');if(e)e.focus()},220);
+}
+function saveRentPay(){
+  var e=document.getElementById('rpAmt'),n=parseFloat(e.value);
+  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
+  var k=mKey(today());
+  S.rentPaidAmt[k]=(S.rentPaidAmt[k]||0)+n;
+  save();closeSheet();render();
+}
+function resetRentMonth(){
+  sheet('<div class="sh-t">Reset this month\'s rent?</div><div class="sh-s">Clears the amount logged as paid for '+today().toLocaleDateString('en-US',{month:'long'})+'.</div>'+
+    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doResetRent()">Reset it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function doResetRent(){var k=mKey(today());S.rentPaidAmt[k]=0;save();closeSheet();render()}
+
+function payArr(){
+  sheet('<div class="sh-t">Payment to landlord</div><div class="sh-s">Log it here right after you send it. Screenshot the transfer.</div>'+
+    '<div class="field"><label class="f">Amount</label><input id="pa" type="number" inputmode="decimal" placeholder="250"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="doPay()">Log payment</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function doPay(){var e=document.getElementById('pa'),n=parseFloat(e.value);
+  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
+  S.paidArrears+=n;save();closeSheet();render()}
+function setArr(){
+  sheet('<div class="sh-t">Set arrears balance</div><div class="sh-s">Use the number in the written agreement.</div>'+
+    '<div class="field"><label class="f">Total owed</label><input id="sa" type="number" inputmode="decimal" value="'+S.arrears+'"></div>'+
+    '<div class="field"><label class="f">Already paid</label><input id="sp" type="number" inputmode="decimal" value="'+S.paidArrears+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="doSetArr()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function doSetArr(){var a=parseFloat(document.getElementById('sa').value),p=parseFloat(document.getElementById('sp').value);
+  if(isNaN(a)||a<0){document.getElementById('sa').style.borderColor='var(--bad)';return}
+  S.arrears=a;S.paidArrears=isNaN(p)?0:p;save();closeSheet();render()}
 
 function openSettings(){
   var s=S.settings;
@@ -1013,106 +1026,145 @@ function saveSettings(){
   S.settings=v;save();closeSheet();render();
 }
 
-function closeSheet(){document.getElementById('sheet').innerHTML='';document.body.style.overflow=''}
+function openFunds(){
+  sheet('<div class="sh-t">Vehicle reserve</div><div class="sh-s">What you\'ve actually put aside. Never added to on its own.</div>'+
+    '<div class="field"><label class="f">Balance</label><input id="fCar" type="number" inputmode="decimal" value="'+S.carReserve+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveFunds()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveFunds(){
+  var c=parseFloat(document.getElementById('fCar').value);
+  if(isNaN(c)||c<0){document.getElementById('fCar').style.borderColor='var(--bad)';return}
+  S.carReserve=c;save();closeSheet();render();
+}
+
+/* ---------- DCF / Legacy checklist CRUD ---------- */
+function openDcf(id){
+  var it=id?S.dcfItems.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(it?'Edit item':'Add a checklist item')+'</div><div class="sh-s">Give it a due date and it counts down like a bill.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="dn" placeholder="e.g. Home safety inspection" value="'+esc(it?it.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="dnote" placeholder="e.g. schedule with Daphne" value="'+esc(it?(it.note||''):'')+'"></div>'+
+    '<div class="field"><label class="f">Due date (optional)</label><input id="ddue" type="date" value="'+esc(it?(it.due||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveDcf(\''+(id||'')+'\')">Save</button>'+
+    (it?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delDcf(\''+id+'\')">Delete this item</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveDcf(id){
+  var n=document.getElementById('dn').value.trim();
+  if(!n){document.getElementById('dn').style.borderColor='var(--bad)';return}
+  var note=document.getElementById('dnote').value.trim();
+  var due=document.getElementById('ddue').value;
+  if(id){var it=S.dcfItems.find(function(x){return x.id===id});it.n=n;it.note=note;it.due=due}
+  else{S.dcfItems.push({id:'d'+Date.now(),n:n,note:note,due:due,done:false})}
+  save();closeSheet();render();
+}
+function delDcf(id){S.dcfItems=S.dcfItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
+function togDcf(id){var it=S.dcfItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
+
+function openLegacy(id){
+  var it=id?S.legacyItems.find(function(x){return x.id===id}):null;
+  sheet('<div class="sh-t">'+(it?'Edit item':'Add a Legacy task')+'</div><div class="sh-s">The recovery/credentialing track — separate from DCF.</div>'+
+    '<div class="field"><label class="f">What is it</label><input id="ln" placeholder="e.g. Advocacy Unlimited RSS Application" value="'+esc(it?it.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Note / next action (optional)</label><input id="lnote" placeholder="e.g. call 860-505-7581" value="'+esc(it?(it.note||''):'')+'"></div>'+
+    '<div class="field"><label class="f">Due date (optional)</label><input id="ldue" type="date" value="'+esc(it?(it.due||''):'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveLegacy(\''+(id||'')+'\')">Save</button>'+
+    (it?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delLegacy(\''+id+'\')">Delete this item</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveLegacy(id){
+  var n=document.getElementById('ln').value.trim();
+  if(!n){document.getElementById('ln').style.borderColor='var(--bad)';return}
+  var note=document.getElementById('lnote').value.trim();
+  var due=document.getElementById('ldue').value;
+  if(id){var it=S.legacyItems.find(function(x){return x.id===id});it.n=n;it.note=note;it.due=due}
+  else{S.legacyItems.push({id:'lg'+Date.now(),n:n,note:note,due:due,done:false})}
+  save();closeSheet();render();
+}
+function delLegacy(id){S.legacyItems=S.legacyItems.filter(function(x){return x.id!==id});save();closeSheet();render()}
+function togLegacy(id){var it=S.legacyItems.find(function(x){return x.id===id});if(it){it.done=!it.done;save();render()}}
+
+/* ---------- contact log ---------- */
+function openContact(){
+  sheet('<div class="sh-t">Record of contact</div><div class="sh-s">Who you spoke to and what was said. Plain facts.</div>'+
+    '<div class="field"><label class="f">Who</label><input id="cwho" placeholder="e.g. Daphne Serrano · DCF, or Harrison · landlord"></div>'+
+    '<div class="field"><label class="f">What happened</label>'+
+    '<textarea id="ct" style="width:100%;height:110px" placeholder="Called re: insurance copy. She confirmed receipt."></textarea></div>'+
+    '<div class="field"><label class="f">Date</label><input id="cdate" type="date" value="'+iso(today())+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="doContact()">Save entry</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('cwho');if(e)e.focus()},220);
+}
+function doContact(){
+  var t=document.getElementById('ct');
+  if(!t.value.trim()){t.style.borderColor='var(--bad)';return}
+  var who=document.getElementById('cwho').value.trim();
+  var dt=document.getElementById('cdate').value||iso(today());
+  S.contacts.push({id:'c'+Date.now(),date:dt,who:who,t:t.value.trim()});
+  save();closeSheet();render();
+}
+function delContact(id){S.contacts=S.contacts.filter(function(c){return c.id!==id});save();closeSheet();render()}
+function openContactView(id){
+  var c=S.contacts.find(function(x){return x.id===id});if(!c)return;
+  var when=c.date?new Date(c.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}):(c.d||'');
+  sheet('<div class="sh-t">'+esc(c.who||'Contact')+'</div><div class="sh-s">'+esc(when)+'</div>'+
+    '<div class="card"><div class="note" style="white-space:pre-wrap">'+esc(c.t)+'</div></div>'+
+    '<button class="btn sm" style="margin-top:12px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delContact(\''+id+'\')">Delete this entry</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+}
+
+/* ---------- daily log ---------- */
+function openLog(presetDate){
+  var k = presetDate || iso(today());
+  var v=S.daily[k];
+  sheet('<div class="sh-t">Log a day</div><div class="sh-s">Only actual driving/gig income — never a bill or rent payment.</div>'+
+    '<div class="field"><label class="f">Which day</label><input id="logday" type="date" value="'+k+'" max="'+iso(today())+'" onchange="fillLogAmt()"></div>'+
+    '<div class="field"><label class="f">Amount cleared after gas</label>'+
+    '<input id="amt" type="number" inputmode="decimal" placeholder="100" value="'+(v!==undefined?v:'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveLog()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('amt');if(e)e.focus()},220);
+}
+function fillLogAmt(){var k=document.getElementById('logday').value;document.getElementById('amt').value=S.daily[k]!==undefined?S.daily[k]:''}
+function saveLog(){
+  var k=document.getElementById('logday').value;
+  var e=document.getElementById('amt'),n=parseFloat(e.value);
+  if(isNaN(n)||n<0){e.style.borderColor='var(--bad)';return}
+  S.daily[k]=n;
+  save();closeSheet();render();
+}
 
 /* ---------- SCORING ---------- */
 function areaKey(s){return (s||'').trim().toLowerCase()}
-function routeKey(start,from,to){
-  var s=areaKey(start),f=areaKey(from),t=areaKey(to);
-  var parts=[s,f,t].filter(Boolean);
-  if(!parts.length)return'';
-  return parts.join(' → ');
-}
-/* Per-city pace: every city you've driven in accumulates its own min/mile.
-   A route's estimate is the average of whichever cities it touches that have data.
-   This works from the first trip in a city, instead of needing an exact route repeat. */
+function routeKey(start,from,to){var parts=[areaKey(start),areaKey(from),areaKey(to)].filter(Boolean);return parts.length?parts.join(' → '):''}
 function cityPace(){
   var acc={};
   S.trips.forEach(function(x){
     if(!(x.min>0)||!(x.mi>0))return;
     var rate=x.min/x.mi;
-    [x.start,x.area,x.drop].forEach(function(c){
-      var k=areaKey(c);if(!k)return;
-      if(!acc[k])acc[k]={sum:0,n:0};
-      acc[k].sum+=rate;acc[k].n++;
-    });
+    [x.start,x.area,x.drop].forEach(function(c){var k=areaKey(c);if(!k)return;if(!acc[k])acc[k]={sum:0,n:0};acc[k].sum+=rate;acc[k].n++});
   });
   return acc;
 }
 function routePace(start,from,to){
   var acc=cityPace(),hits=[],names=[];
-  [start,from,to].forEach(function(c){
-    var k=areaKey(c);if(!k||!acc[k])return;
-    hits.push(acc[k].sum/acc[k].n);names.push(k);
-  });
+  [start,from,to].forEach(function(c){var k=areaKey(c);if(!k||!acc[k])return;hits.push(acc[k].sum/acc[k].n);names.push(k)});
   if(!hits.length)return null;
-  var avg=hits.reduce(function(a,b){return a+b},0)/hits.length;
-  return{minPerMile:avg,n:names.length,cities:names};
+  return{minPerMile:hits.reduce(function(a,b){return a+b},0)/hits.length,cities:names};
 }
 function scoreOrder(pay,mi,min,start,area,drop){
   if(!(pay>0)||!(mi>0))return null;
   var perMile=pay/mi;
   var est=null,estFrom=null;
-  if(min>0){est=min}
-  else{var ap=routePace(start,area,drop);if(ap){est=ap.minPerMile*mi;estFrom=ap.cities.join(', ')}}
+  if(min>0){est=min}else{var ap=routePace(start,area,drop);if(ap){est=ap.minPerMile*mi;estFrom=ap.cities.join(', ')}}
   var perHour=est>0?pay/(est/60):null;
-
-  // $/mile scored against your floor: at floor = 6, double floor = 10
   var pm=S.settings.perMile||1.2;
-  var mScore=Math.max(0,Math.min(10, 6*(perMile/pm) ));
+  var mScore=Math.max(0,Math.min(10, 6*(perMile/pm)));
   if(perMile>=pm*2)mScore=10;
-
   var hScore=null;
-  if(perHour!==null){
-    var ph=S.settings.perHour||20;
-    hScore=Math.max(0,Math.min(10, 6*(perHour/ph) ));
-    if(perHour>=ph*2)hScore=10;
-  }
+  if(perHour!==null){var ph=S.settings.perHour||20;hScore=Math.max(0,Math.min(10,6*(perHour/ph)));if(perHour>=ph*2)hScore=10}
   var total = hScore===null ? mScore : (mScore*0.55 + hScore*0.45);
-  return{
-    score:Math.round(total*10)/10,
-    perMile:perMile, perHour:perHour,
-    est:est, estFrom:estFrom, hasTime:min>0
-  };
+  return{score:Math.round(total*10)/10,perMile:perMile,perHour:perHour,est:est,estFrom:estFrom,hasTime:min>0};
 }
-/* ---------- AREA CHIPS + AUTO-FILL ---------- */
-function knownAreas(){
-  var seen={},out=[];
-  for(var i=S.trips.length-1;i>=0;i--){
-    var x=S.trips[i];
-    [x.drop,x.area,x.start].forEach(function(c){
-      if(!c||!c.trim())return;
-      var k=areaKey(c);
-      if(!seen[k]){seen[k]=1;out.push(c.trim())}
-    });
-  }
-  return out.slice(0,8);
-}
-function renderChips(){
-  var areas=knownAreas();
-  ['Start','Area','Drop'].forEach(function(which){
-    var el=document.getElementById('chip'+which);
-    if(!el)return;
-    el.innerHTML=areas.map(function(a){
-      return '<button class="chip" onclick="pickArea(&quot;sc'+which+'&quot;,&quot;'+escAttr(a)+'&quot;)">'+esc(a)+'</button>'
-    }).join('');
-  });
-}
-function pickArea(inputId,val){
-  var e=document.getElementById(inputId);
-  if(!e)return;
-  e.value=val;
-  runScore();
-}
-function autofillStart(){
-  var e=document.getElementById('scStart');
-  if(!e||e.value.trim())return;
-  for(var i=S.trips.length-1;i>=0;i--){
-    var d=S.trips[i].drop;
-    if(d&&d.trim()){e.value=d.trim();break}
-  }
-}
-
 function runScore(){
   var pay=parseFloat(document.getElementById('scPay').value);
   var mi=parseFloat(document.getElementById('scMi').value);
@@ -1123,27 +1175,23 @@ function runScore(){
   var out=document.getElementById('scoreOut');
   var r=scoreOrder(pay,mi,min,start,area,drop);
   if(!r){out.innerHTML='<div class="card"><div class="mt">Enter pay and miles to score it.</div></div>';return}
-
   var col = r.score>=7?'var(--grow)':r.score>=5?'var(--warn)':'var(--bad)';
   var verdict = r.score>=7?'Strong':r.score>=5?'Decent':'Weak';
   var lines='<div class="row"><div><div class="nm">Per mile</div><div class="mt">Your floor: $'+
     (S.settings.perMile).toFixed(2)+'</div></div><div class="amt" style="color:'+
     (r.perMile>=S.settings.perMile?'var(--grow)':'var(--bad)')+'">$'+r.perMile.toFixed(2)+'</div></div>';
-
   if(r.perHour!==null){
     lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">Your floor: $'+
       S.settings.perHour+(r.hasTime?'':' · time estimated from your pace in '+r.estFrom)+
       '</div></div><div class="amt" style="color:'+
       (r.perHour>=S.settings.perHour?'var(--grow)':'var(--bad)')+'">$'+r.perHour.toFixed(0)+'</div></div>';
   }else{
-    lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">No time given, and none of these areas have pace data yet — traffic isn\'t counted here.</div></div><div class="amt" style="color:var(--tx3)">—</div></div>';
+    lines+='<div class="row"><div><div class="nm">Per hour</div><div class="mt">No time given, and none of these areas have pace data yet.</div></div><div class="amt" style="color:var(--tx3)">—</div></div>';
   }
-
   out.innerHTML='<div class="card" style="border-color:'+col+'44">'+
     '<div style="text-align:center;padding:6px 0 12px">'+
     '<div style="font-size:46px;font-weight:600;color:'+col+';line-height:1">'+r.score.toFixed(1)+'</div>'+
-    '<div class="mt" style="font-size:13px">out of 10 · '+verdict+'</div></div>'+
-    lines+
+    '<div class="mt" style="font-size:13px">out of 10 · '+verdict+'</div></div>'+lines+
     '<div class="btnrow"><button class="btn sm" onclick="tookIt()">Took it — log it</button></div></div>';
 }
 function tookIt(){
@@ -1155,9 +1203,7 @@ function tookIt(){
   var drop=document.getElementById('scDrop').value;
   if(!(pay>0))return;
   var k=iso(today());
-  var had=S.daily[k]!==undefined;
   S.daily[k]=(S.daily[k]||0)+pay;
-  // funds are set manually — the app never invents money you did not move
   S.trips.push({id:'t'+Date.now(),d:k,pay:pay,mi:mi||0,min:min||0,start:start||'',area:area||'',drop:drop||''});
   save();
   document.getElementById('scPay').value='';
@@ -1165,160 +1211,21 @@ function tookIt(){
   document.getElementById('scMin').value='';
   document.getElementById('scDrop').value='';
   document.getElementById('scArea').value='';
-  // you're now where that trip ended — carry it forward as the next start
   document.getElementById('scStart').value = (drop&&drop.trim()) ? drop.trim() : (area||'');
-  renderChips();
-  runScore();render();
+  renderChips();runScore();render();
   toast('Logged '+money2(pay)+' — today is now '+money(S.daily[k]));
 }
 
-/* ---------- SURVIVAL NUMBERS ---------- */
-function monthlyIncome(){var s=0;S.income.forEach(function(i){
-  // cash assistance lands twice a month; everything else once
-  s += /assistance/i.test(i.n) ? i.a*2 : i.a});return s}
-
-function needsThisMonth(){
-  var k=mKey(today()),s=0;
-  S.needs.forEach(function(n){if(n.date&&n.date.slice(0,7)===k)s+=n.amount});
-  return s;
-}
-function otherIncomeThisMonth(){
-  var k=mKey(today()),s=0;
-  S.otherIncome.forEach(function(o){if(o.date&&o.date.slice(0,7)===k)s+=o.amount});
-  return s;
-}
-function monthSurvival(){
-  var t=today(),k=mKey(t);
-  var billsTotal=0;
-  S.bills.forEach(function(b){if(!S.billsPaid[b.id+'-'+k])billsTotal+=b.a});
-  var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[k]||0));
-  var arrearsLeft=Math.max(0,S.arrears-S.paidArrears);
-  var extrasLeft=0;S.extras.forEach(function(x){if(!x.done)extrasLeft+=x.a});
-  var owed=billsTotal+rentLeft+arrearsLeft+extrasLeft;
-  var other=otherIncomeThisMonth();
-  var income=monthlyIncome()+other;
-  return{owed:owed,income:income,other:other,gap:Math.max(0,owed-income),
-    bills:billsTotal,rent:rentLeft,arrears:arrearsLeft,extras:extrasLeft};
-}
-/* what's actually due in the next 7 days */
-function weekSlice(){
-  var t=today(),k=mKey(t),items=[],total=0;
-  var todayNum=t.getDate();
-  var horizon=new Date();horizon.setDate(horizon.getDate()+7);
-  S.bills.forEach(function(b){
-    if(S.billsPaid[b.id+'-'+k])return;
-    var dd=daysUntil(b.day);
-    if(dd<=7){items.push({n:b.n,a:b.a,d:dd,kind:'bill'});total+=b.a}
-  });
-  var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[k]||0));
-  if(rentLeft>0){
-    var dr=daysUntil(S.settings.rentDay);
-    if(dr<=7){items.push({n:'Rent',a:rentLeft,d:dr,kind:'rent'});total+=rentLeft}
-  }
-  if(Math.max(0,S.arrears-S.paidArrears)>0){
-    var dFri=(5-t.getDay()+7)%7;
-    items.push({n:'Landlord arrears',a:WEEKLY_ARR(),d:dFri,kind:'arrears'});
-    total+=WEEKLY_ARR();
-  }
-  items.sort(function(a,b){return a.d-b.d});
-  return{items:items,total:total};
-}
-/* which day of the week actually earns */
-function dowAverages(){
-  var buckets=[[],[],[],[],[],[],[]];
-  Object.keys(S.daily).forEach(function(k){
-    var d=new Date(k+'T00:00:00');
-    buckets[d.getDay()].push(S.daily[k]);
-  });
-  return buckets.map(function(vals,i){
-    var avg=vals.length?vals.reduce(function(a,b){return a+b},0)/vals.length:null;
-    return{day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i],avg:avg,n:vals.length};
-  });
-}
-
-/* ---------- PROJECTION ---------- */
-function projection(){
-  var t=today();
-  var remaining=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
-  if(remaining<=0)return{ok:true,avg:0,days:0,gap:0,perDay:0,paidAlready:true};
-  var dR=daysUntil(S.settings.rentDay);
-  var recent=[],d;
-  for(var i=1;i<=14;i++){d=new Date();d.setDate(d.getDate()-i);
-    if(S.daily[iso(d)]!==undefined)recent.push(S.daily[iso(d)])}
-  if(recent.length<3)return null;
-  var avg=recent.reduce(function(a,b){return a+b},0)/recent.length;
-  var expected=avg*dR;
-  if(expected>=remaining)return{ok:true,avg:avg,days:dR,gap:0,perDay:0};
-  var gap=remaining-expected;
-  return{ok:false,avg:avg,days:dR,gap:gap,perDay:dR>0?gap/dR:gap};
-}
-function renderProjection(){
-  var p=projection(),el=document.getElementById('projBanner');
-  if(!p){el.innerHTML='';return}
-  if(p.paidAlready){
-    el.innerHTML='<div class="okbox" style="margin-top:14px">This month\'s rent is fully paid. Nothing to track here until next month.</div>';
-  }else if(p.ok){
-    el.innerHTML='<div class="okbox" style="margin-top:14px">On pace for rent. Averaging '+money(p.avg)+
-      '/day over the last two weeks, with '+p.days+' day'+(p.days===1?'':'s')+' until it\'s due.</div>';
-  }else{
-    el.innerHTML='<div class="warnbox" style="margin-top:14px">Rent is '+p.days+' day'+(p.days===1?'':'s')+
-      ' out and your recent pace ('+money(p.avg)+'/day) leaves you about '+money(p.gap)+' short. '+
-      'That\'s '+money(p.perDay)+'/day from here to close it.</div>';
-  }
-}
-
-/* ---------- REWARDS ---------- */
-function toast(msg){
-  var d=document.createElement('div');
-  d.className='toast';d.textContent=msg;
-  document.body.appendChild(d);
-  setTimeout(function(){d.classList.add('out')},2600);
-  setTimeout(function(){d.remove()},3200);
-}
-function checkRewards(){
-  var firstRun = S.seen.introDone===undefined;
-  var wk=weekStart(today()).toISOString().slice(0,10);
-
-  if(!firstRun && weekTotal()>=FLOOR() && !S.seen['floor-'+wk]){
-    S.seen['floor-'+wk]=1;save();
-    celebrate('Floor cleared','You hit '+money(weekTotal())+' this week. That\'s the whole target, done.');
-    return;
-  }
-  var mi=milestones();
-  var prev=S.seen.lastMile||0;
-  if(mi>prev){
-    S.seen.lastMile=mi;save();
-    if(!firstRun){
-      celebrate('Milestone','The trunk just grew. '+mi+' milestone'+(mi===1?'':'s')+' locked in — that part never shrinks.');
-      return;
-    }
-  }
-  if(!firstRun && S.arrears>0 && S.paidArrears>=S.arrears && !S.seen.arrearsClear){
-    S.seen.arrearsClear=1;save();
-    celebrate('Arrears clear','Paid in full. That weight is off.');
-    return;
-  }
-  if(firstRun){S.seen.introDone=1;save()}
-}
-function celebrate(title,body){
-  sheet('<div style="text-align:center;padding:8px 0 4px">'+
-    '<div style="font-size:44px;line-height:1">🌿</div>'+
-    '<div class="sh-t" style="margin-top:8px">'+title+'</div>'+
-    '<div class="sh-s">'+body+'</div></div>'+
-    '<button class="btn go" onclick="closeSheet()">Good</button>');
-}
-
 function openTrip(id){
-  var x=S.trips.find(function(t){return t.id===id});
-  if(!x)return;
-  sheet('<div class="sh-t">Fix this trip</div><div class="sh-s">Logged '+x.d+'.</div>'+
+  var x=S.trips.find(function(t){return t.id===id});if(!x)return;
+  sheet('<div class="sh-t">Fix this trip</div><div class="sh-s">Logged '+esc(x.d)+'.</div>'+
     '<div class="field"><label class="f">Pay</label><input id="txPay" type="number" inputmode="decimal" value="'+x.pay+'"></div>'+
     '<div class="field"><label class="f">Miles</label><input id="txMi" type="number" inputmode="decimal" value="'+x.mi+'"></div>'+
     '<div class="field"><label class="f">Minutes</label><input id="txMin" type="number" inputmode="decimal" value="'+(x.min||'')+'"></div>'+
     '<div class="field"><label class="f">Starting area</label><input id="txStart" value="'+esc(x.start||'')+'"></div>'+
     '<div class="field"><label class="f">Pickup area</label><input id="txArea" value="'+esc(x.area||'')+'"></div>'+
     '<div class="field"><label class="f">Drop-off area</label><input id="txDrop" value="'+esc(x.drop||'')+'"></div>'+
-    '<div class="warnbox">This fixes the trip record for territory learning only. It does not change '+x.d+'\'s logged earnings — edit that from History if it needs to change too.</div>'+
+    '<div class="warnbox">This fixes the trip record for territory learning only. It does not change '+esc(x.d)+'\'s logged earnings — edit that from History if it needs to change too.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveTrip(\''+id+'\')">Save</button>'+
     '<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delTrip(\''+id+'\')">Delete this trip</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
@@ -1338,231 +1245,180 @@ function saveTrip(id){
 }
 function delTrip(id){S.trips=S.trips.filter(function(t){return t.id!==id});save();closeSheet();render();renderChips()}
 
-function openFunds(){
-  sheet('<div class="sh-t">Vehicle reserve</div><div class="sh-s">What you\'ve actually put aside. Never added to on its own.</div>'+
-    '<div class="field"><label class="f">Balance</label><input id="fCar" type="number" inputmode="decimal" value="'+S.carReserve+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveFunds()">Save</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function saveFunds(){
-  var c=parseFloat(document.getElementById('fCar').value);
-  if(isNaN(c)||c<0){document.getElementById('fCar').style.borderColor='var(--bad)';return}
-  S.carReserve=c;save();closeSheet();render();
-}
-
-/* ---------- GOALS: open-ended, any name/amount/date ---------- */
-function openGoal(id){
-  var g=id?S.goals.find(function(x){return x.id===id}):null;
-  sheet('<div class="sh-t">'+(g?'Edit goal':'Add a goal')+'</div><div class="sh-s">A show, a vacation, a house down payment — anything you\'re saving toward, with a real date.</div>'+
-    '<div class="field"><label class="f">What is it</label><input id="gn" placeholder="e.g. Jadakiss show" value="'+esc(g?g.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Target amount</label><input id="gt" type="number" inputmode="decimal" placeholder="200" value="'+(g?g.target:'')+'"></div>'+
-    '<div class="field"><label class="f">Already saved</label><input id="gc" type="number" inputmode="decimal" placeholder="0" value="'+(g?g.current:0)+'"></div>'+
-    '<div class="field"><label class="f">Target date</label><input id="gd" type="date" value="'+(g?g.date:'')+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveGoal(\''+(id||'')+'\')">Save</button>'+
-    (g?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delGoal(\''+id+'\')">Delete this goal</button>':'')+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function saveGoal(id){
-  var n=document.getElementById('gn').value.trim();
-  var t=parseFloat(document.getElementById('gt').value);
-  var c=parseFloat(document.getElementById('gc').value);
-  var d=document.getElementById('gd').value;
-  if(!n){document.getElementById('gn').style.borderColor='var(--bad)';return}
-  if(isNaN(t)||t<=0){document.getElementById('gt').style.borderColor='var(--bad)';return}
-  if(isNaN(c)||c<0)c=0;
-  if(id){var g=S.goals.find(function(x){return x.id===id});g.n=n;g.target=t;g.current=c;g.date=d}
-  else{S.goals.push({id:'g'+Date.now(),n:n,target:t,current:c,date:d})}
-  save();closeSheet();render();
-}
-function delGoal(id){S.goals=S.goals.filter(function(x){return x.id!==id});save();closeSheet();render()}
-
-/* ---------- BACKUP: export / import ---------- */
-function exportData(){
-  try{
-    var payload={app:'GTL',version:2,exported:new Date().toISOString(),data:S};
-    var txt=JSON.stringify(payload,null,2);
-    var blob=new Blob([txt],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;
-    a.download='gtl-backup-'+iso(today())+'.json';
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){URL.revokeObjectURL(url);a.remove()},400);
-    S.seen.lastBackup=new Date().toISOString();save();render();
-    toast('Backup saved — keep it somewhere safe');
-  }catch(e){
-    // fallback for browsers that block downloads: show the text to copy
-    sheet('<div class="sh-t">Copy your backup</div><div class="sh-s">Download was blocked. Select all of this and save it somewhere safe.</div>'+
-      '<textarea readonly style="width:100%;height:220px;font-size:11px;background:var(--s2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;padding:12px">'+
-      esc(JSON.stringify({app:'GTL',version:2,data:S}))+'</textarea>'+
-      '<button class="btn" style="margin-top:12px" onclick="closeSheet()">Done</button>');
+function knownAreas(){
+  var seen={},out=[];
+  for(var i=S.trips.length-1;i>=0;i--){
+    var x=S.trips[i];
+    [x.drop,x.area,x.start].forEach(function(c){if(!c||!c.trim())return;var k=areaKey(c);if(!seen[k]){seen[k]=1;out.push(c.trim())}});
   }
+  return out.slice(0,8);
 }
-function openImport(){
-  sheet('<div class="sh-t">Restore from backup</div><div class="sh-s">Pick a backup file, or paste its contents. This replaces everything currently in the app.</div>'+
-    '<div class="field"><label class="f">Backup file</label>'+
-    '<input id="impFile" type="file" accept=".json,application/json" onchange="importFile(event)"></div>'+
-    '<div class="field"><label class="f">Or paste the backup text</label>'+
-    '<textarea id="impText" style="width:100%;height:140px;font-size:11px;background:var(--s2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;padding:12px" placeholder="{&quot;app&quot;:&quot;GTL&quot;...}"></textarea></div>'+
-    '<div class="warnbox">Restoring overwrites everything currently saved. Export a backup of what you have now first if you\'re not sure.</div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="importPasted()">Restore</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+function renderChips(){
+  var areas=knownAreas();
+  ['Start','Area','Drop'].forEach(function(which){
+    var el=document.getElementById('chip'+which);if(!el)return;
+    el.innerHTML=areas.map(function(a){return '<button class="chip" onclick="pickArea(&quot;sc'+which+'&quot;,&quot;'+escAttr(a)+'&quot;)">'+esc(a)+'</button>'}).join('');
+  });
 }
-function importFile(ev){
-  var f=ev.target.files&&ev.target.files[0];
-  if(!f)return;
-  var r=new FileReader();
-  r.onload=function(){applyImport(r.result)};
-  r.onerror=function(){toast('Could not read that file')};
-  r.readAsText(f);
-}
-function importPasted(){
-  var t=document.getElementById('impText');
-  if(!t||!t.value.trim()){t.style.borderColor='var(--bad)';return}
-  applyImport(t.value);
-}
-function applyImport(raw){
-  var parsed;
-  try{parsed=JSON.parse(raw)}
-  catch(e){toast('That doesn\'t look like a GTL backup');return}
-  var d=parsed&&parsed.data?parsed.data:parsed;
-  if(!d||typeof d!=='object'||!d.daily){toast('That doesn\'t look like a GTL backup');return}
-  S=Object.assign({},DEF,d);
-  S.dcf=Object.assign({},DEF.dcf,S.dcf||{});
-  if(!S.bills)S.bills=DEF.bills;
-  if(!S.income)S.income=DEF.income;
-  if(!S.extras)S.extras=DEF.extras;
-  if(!S.goals)S.goals=DEF.goals;
-  if(!S.trips)S.trips=[];
-  if(!S.seen)S.seen={};
-  if(!S.rentPaidAmt)S.rentPaidAmt={};
-  S.settings=Object.assign({},DEF.settings,S.settings||{});
-  save();closeSheet();render();renderChips();
-  toast('Restored from backup');
+function pickArea(inputId,val){var e=document.getElementById(inputId);if(!e)return;e.value=val;runScore()}
+function autofillStart(){
+  var e=document.getElementById('scStart');if(!e||e.value.trim())return;
+  for(var i=S.trips.length-1;i>=0;i--){var d=S.trips[i].drop;if(d&&d.trim()){e.value=d.trim();break}}
 }
 
-/* ---------- PAYMENTS & NECESSITIES ---------- */
-function openPayBill(billId){
-  var b=S.bills.find(function(x){return x.id===billId});
-  if(!b)return;
-  sheet('<div class="sh-t">Log a payment</div><div class="sh-s">'+esc(b.n)+' — record what you actually sent.</div>'+
-    '<div class="field"><label class="f">Amount</label><input id="pbAmt" type="number" inputmode="decimal" value="'+b.a+'"></div>'+
-    '<div class="field"><label class="f">Date</label><input id="pbDate" type="date" value="'+iso(today())+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="savePayBill(\''+billId+'\')">Log it</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+/* ---------- projection ---------- */
+function projection(){
+  var t=today();
+  var remaining=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
+  if(remaining<=0)return{ok:true,avg:0,days:0,gap:0,perDay:0,paidAlready:true};
+  var dR=daysUntil(S.settings.rentDay);
+  var recent=[],d;
+  for(var i=1;i<=14;i++){d=new Date();d.setDate(d.getDate()-i);if(S.daily[iso(d)]!==undefined)recent.push(S.daily[iso(d)])}
+  if(recent.length<3)return null;
+  var avg=recent.reduce(function(a,b){return a+b},0)/recent.length;
+  var expected=avg*dR;
+  if(expected>=remaining)return{ok:true,avg:avg,days:dR,gap:0,perDay:0};
+  var gap=remaining-expected;
+  return{ok:false,avg:avg,days:dR,gap:gap,perDay:dR>0?gap/dR:gap};
 }
-function savePayBill(billId){
-  var b=S.bills.find(function(x){return x.id===billId});
-  var amt=parseFloat(document.getElementById('pbAmt').value);
-  var dt=document.getElementById('pbDate').value||iso(today());
-  if(isNaN(amt)||amt<=0){document.getElementById('pbAmt').style.borderColor='var(--bad)';return}
-  S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b?b.n:'Bill',amount:amt});
-  S.billsPaid[billId+'-'+mKey(new Date(dt+'T00:00:00'))]=true;
-  save();closeSheet();render();
-  toast('Logged '+money2(amt)+' to '+(b?b.n:'bill'));
-}
-function openOtherIncome(){
-  sheet('<div class="sh-t">Log other income</div><div class="sh-s">Trading, side cash, anything real that isn\'t from driving. Counts toward this month\'s gap, not your weekly driving floor — those stay separate on purpose.</div>'+
-    '<div class="field"><label class="f">What was it</label><input id="oiLabel" placeholder="e.g. trading gain"></div>'+
-    '<div class="field"><label class="f">Amount</label><input id="oiAmt" type="number" inputmode="decimal" placeholder="100"></div>'+
-    '<div class="field"><label class="f">Date</label><input id="oiDate" type="date" value="'+iso(today())+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveOtherIncome()">Save</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('oiLabel');if(e)e.focus()},220);
-}
-function saveOtherIncome(){
-  var l=document.getElementById('oiLabel').value.trim();
-  var a=parseFloat(document.getElementById('oiAmt').value);
-  var d=document.getElementById('oiDate').value||iso(today());
-  if(!l){document.getElementById('oiLabel').style.borderColor='var(--bad)';return}
-  if(isNaN(a)||a<=0){document.getElementById('oiAmt').style.borderColor='var(--bad)';return}
-  S.otherIncome.push({id:'oi'+Date.now(),date:d,label:l,amount:a});
-  save();closeSheet();render();
-  toast('Logged '+money2(a)+' — counts toward the month, not the driving floor');
+function renderProjection(){
+  var p=projection(),el=document.getElementById('projBanner');
+  if(!p){el.innerHTML='';return}
+  if(p.paidAlready){el.innerHTML='<div class="okbox" style="margin-top:14px">This month\'s rent is fully paid. Nothing to track here until next month.</div>'}
+  else if(p.ok){el.innerHTML='<div class="okbox" style="margin-top:14px">On pace for rent. Averaging '+money(p.avg)+'/day over the last two weeks, with '+p.days+' day'+(p.days===1?'':'s')+' until it\'s due.</div>'}
+  else{el.innerHTML='<div class="warnbox" style="margin-top:14px">Rent is '+p.days+' day'+(p.days===1?'':'s')+' out and your recent pace ('+money(p.avg)+'/day) leaves you about '+money(p.gap)+' short. That\'s '+money(p.perDay)+'/day from here to close it.</div>'}
 }
 
-function openNeed(){
-  sheet('<div class="sh-t">Log a necessity</div><div class="sh-s">Cat food, school supplies, household stuff — things you can\'t skip. Not takeout, not gas, not anything you don\'t want tracked.</div>'+
-    '<div class="field"><label class="f">What was it</label><input id="ndLabel" placeholder="e.g. cat food + litter"></div>'+
-    '<div class="field"><label class="f">Amount</label><input id="ndAmt" type="number" inputmode="decimal" placeholder="0"></div>'+
-    '<div class="field"><label class="f">Date</label><input id="ndDate" type="date" value="'+iso(today())+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveNeed()">Save</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('ndLabel');if(e)e.focus()},220);
+/* ---------- rewards ---------- */
+function toast(msg){
+  var d=document.createElement('div');d.className='toast';d.textContent=msg;document.body.appendChild(d);
+  setTimeout(function(){d.classList.add('out')},2600);setTimeout(function(){d.remove()},3200);
 }
-function saveNeed(){
-  var l=document.getElementById('ndLabel').value.trim();
-  var a=parseFloat(document.getElementById('ndAmt').value);
-  var d=document.getElementById('ndDate').value||iso(today());
-  if(!l){document.getElementById('ndLabel').style.borderColor='var(--bad)';return}
-  if(isNaN(a)||a<=0){document.getElementById('ndAmt').style.borderColor='var(--bad)';return}
-  S.needs.push({id:'n'+Date.now(),date:d,label:l,amount:a});
-  save();closeSheet();render();
+function checkRewards(){
+  var firstRun = S.seen.introDone===undefined;
+  var wk=weekStart(today()).toISOString().slice(0,10);
+  if(!firstRun && weekTotal()>=FLOOR() && !S.seen['floor-'+wk]){
+    S.seen['floor-'+wk]=1;save();celebrate('Floor cleared','You hit '+money(weekTotal())+' this week.');return;
+  }
+  var mi=milestones(),prev=S.seen.lastMile||0;
+  if(mi>prev){S.seen.lastMile=mi;save();if(!firstRun){celebrate('Milestone','The trunk just grew. '+mi+' milestone'+(mi===1?'':'s')+' locked in.');return}}
+  if(!firstRun && S.arrears>0 && S.paidArrears>=S.arrears && !S.seen.arrearsClear){
+    S.seen.arrearsClear=1;save();celebrate('Arrears clear','Paid in full. That weight is off.');return;
+  }
+  if(firstRun){S.seen.introDone=1;save()}
 }
-function delNeed(id){S.needs=S.needs.filter(function(n){return n.id!==id});save();closeSheet();render()}
-function openNeedView(id){
-  var n=S.needs.find(function(x){return x.id===id});if(!n)return;
-  sheet('<div class="sh-t">'+esc(n.label)+'</div><div class="sh-s">'+money2(n.amount)+' · '+esc(n.date)+'</div>'+
-    '<button class="btn sm" style="margin-top:12px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delNeed(\''+id+'\')">Delete</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+function celebrate(title,body){
+  sheet('<div style="text-align:center;padding:8px 0 4px"><div style="font-size:44px;line-height:1">🌿</div>'+
+    '<div class="sh-t" style="margin-top:8px">'+esc(title)+'</div><div class="sh-s">'+esc(body)+'</div></div>'+
+    '<button class="btn go" onclick="closeSheet()">Good</button>');
 }
 
-/* ---------- WEEK CLOSE-OUT ---------- */
+/* ---------- close-out ---------- */
+function monthNameOf(d){return d.toLocaleDateString('en-US',{month:'long'})}
 function openCloseOut(){
   var ws=weekStart(today()),wt=weekTotal(),floor=FLOOR();
   var days='';
   for(var i=0;i<7;i++){
-    var d=new Date(ws);d.setDate(ws.getDate()+i);
-    var v=S.daily[iso(d)];
+    var d=new Date(ws);d.setDate(ws.getDate()+i);var v=S.daily[iso(d)];
     days+='<div class="log-row"><span>'+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</span>'+
-      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
-      (v===undefined?'—':money(v))+'</b></div>';
+      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+(v===undefined?'—':money(v))+'</b></div>';
   }
-  // what got paid this week
-  var wkStartIso=iso(ws), wkEnd=new Date(ws);wkEnd.setDate(ws.getDate()+6);
-  var wkEndIso=iso(wkEnd);
+  var wkStartIso=iso(ws), wkEnd=new Date(ws);wkEnd.setDate(ws.getDate()+6);var wkEndIso=iso(wkEnd);
   var paid=S.payments.filter(function(p){return p.date>=wkStartIso&&p.date<=wkEndIso});
   var paidTotal=0;paid.forEach(function(p){paidTotal+=p.amount});
   var needsWk=S.needs.filter(function(n){return n.date>=wkStartIso&&n.date<=wkEndIso});
   var needsTotal=0;needsWk.forEach(function(n){needsTotal+=n.amount});
-
-  var next=weekSlice();
-  var ms=monthSurvival();
-  var over=wt>=floor;
-
+  var next=weekSlice(), ms=monthSurvival(), over=wt>=floor;
   sheet('<div class="sh-t">Week of '+ws.toLocaleDateString('en-US',{month:'long',day:'numeric'})+'</div>'+
     '<div class="sh-s">'+(over?'Floor cleared.':'Came in under the floor.')+'</div>'+
     '<div class="card"><div class="row"><div><div class="nm">Earned</div><div class="mt">Floor was '+money(floor)+'</div></div>'+
-    '<div class="amt" style="color:'+(over?'var(--grow)':'var(--warn)')+'">'+money(wt)+'</div></div></div>'+
-    days+
+    '<div class="amt" style="color:'+(over?'var(--grow)':'var(--warn)')+'">'+money(wt)+'</div></div></div>'+days+
     '<h2 style="margin-top:18px">What it covered</h2>'+
     (paid.length?paid.map(function(p){return '<div class="log-row"><span>'+esc(p.label)+'</span><b style="font-weight:400">'+money2(p.amount)+'</b></div>'}).join('')
       :'<div class="mt">No bill payments logged this week.</div>')+
     (needsWk.length?'<div class="log-row" style="opacity:.75"><span>Necessities</span><b style="font-weight:400">'+money(needsTotal)+'</b></div>':'')+
     '<div class="log-row"><span><b>Total out</b></span><b>'+money(paidTotal+needsTotal)+'</b></div>'+
     '<h2 style="margin-top:18px">Next week</h2>'+
-    (next.items.length?next.items.map(function(i){
-      return '<div class="log-row"><span>'+esc(i.n)+'</span><b style="font-weight:400">'+money(i.a)+'</b></div>'}).join('')
+    (next.items.length?next.items.map(function(i){return '<div class="log-row"><span>'+esc(i.n)+'</span><b style="font-weight:400">'+money(i.a)+'</b></div>'}).join('')
       :'<div class="mt">Nothing due in the next 7 days.</div>')+
     '<div class="log-row"><span><b>Due next 7 days</b></span><b>'+money(next.total)+'</b></div>'+
     '<div class="okbox">'+monthNameOf(today())+' still needs '+money(ms.gap)+' from driving.</div>'+
     '<div class="btnrow"><button class="btn sm" onclick="exportData()">Back it up</button></div>'+
     '<button class="btn" style="margin-top:10px" onclick="closeSheet()">Close</button>');
 }
-function monthNameOf(d){return d.toLocaleDateString('en-US',{month:'long'})}
 
+/* ---------- backup / restore ---------- */
+function exportData(){
+  try{
+    var payload={app:'GTL',version:3,exported:new Date().toISOString(),data:S};
+    var txt=JSON.stringify(payload,null,2);
+    var blob=new Blob([txt],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='gtl-backup-'+iso(today())+'.json';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);a.remove()},400);
+    S.seen.lastBackup=new Date().toISOString();save();render();
+    toast('Backup saved — keep it somewhere safe');
+  }catch(e){
+    sheet('<div class="sh-t">Copy your backup</div><div class="sh-s">Download was blocked. Select all of this and save it somewhere safe.</div>'+
+      '<textarea readonly style="width:100%;height:220px;font-size:11px">'+esc(JSON.stringify({app:'GTL',version:3,data:S}))+'</textarea>'+
+      '<button class="btn" style="margin-top:12px" onclick="closeSheet()">Done</button>');
+  }
+}
+function openImport(){
+  sheet('<div class="sh-t">Restore from backup</div><div class="sh-s">Pick a backup file, or paste its contents. This replaces everything currently in the app.</div>'+
+    '<div class="field"><label class="f">Backup file</label><input id="impFile" type="file" accept=".json,application/json" onchange="importFile(event)"></div>'+
+    '<div class="field"><label class="f">Or paste the backup text</label><textarea id="impText" style="width:100%;height:140px;font-size:11px"></textarea></div>'+
+    '<div class="warnbox">Restoring overwrites everything currently saved.</div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="importPasted()">Restore</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function importFile(ev){
+  var f=ev.target.files&&ev.target.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(){applyImport(r.result)};r.onerror=function(){toast('Could not read that file')};r.readAsText(f);
+}
+function importPasted(){var t=document.getElementById('impText');if(!t||!t.value.trim()){t.style.borderColor='var(--bad)';return}applyImport(t.value)}
+function applyImport(raw){
+  var parsed;try{parsed=JSON.parse(raw)}catch(e){toast('That doesn\'t look like a GTL backup');return}
+  var d=parsed&&parsed.data?parsed.data:parsed;
+  if(!d||typeof d!=='object'||!d.daily){toast('That doesn\'t look like a GTL backup');return}
+  S=Object.assign({},DEF,d);
+  S.settings=Object.assign({},DEF.settings,S.settings||{});
+  if(!S.bills)S.bills=DEF.bills;
+  if(!S.income)S.income=DEF.income;
+  if(!S.extras)S.extras=DEF.extras;
+  if(!S.goals)S.goals=DEF.goals;
+  if(!S.dcfItems)S.dcfItems=DEF.dcfItems;
+  if(!S.legacyItems)S.legacyItems=DEF.legacyItems;
+  if(!S.trips)S.trips=[];
+  if(!S.seen)S.seen={};
+  if(!S.rentPaidAmt)S.rentPaidAmt={};
+  if(!S.billPaidAmt)S.billPaidAmt={};
+  if(!S.payments)S.payments=[];
+  if(!S.needs)S.needs=[];
+  if(!S.otherIncome)S.otherIncome=[];
+  save();closeSheet();render();renderChips();
+  toast('Restored from backup');
+}
+function wipe(){
+  sheet('<div class="sh-t">Reset everything?</div><div class="sh-s">Every logged day, payment, and checklist item is erased. This cannot be undone.</div>'+
+    '<div class="warnbox">Your streak and tree go back to zero.</div>'+
+    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doWipe()">Yes, erase it all</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Keep my data</button>');
+}
+function doWipe(){S=JSON.parse(JSON.stringify(DEF));save();closeSheet();render()}
+
+/* ---------- tree detail ---------- */
 function openTreeDetail(){
   var st=streak(), mi=milestones(), c=last14();
   var dcfDone=S.dcfItems.filter(function(i){return i.done}).length;
+  var legacyDone=S.legacyItems.filter(function(i){return i.done}).length;
   var weeks=pastWeeksFloorHits(4);
   var weeksLogged=weeks.filter(function(w){return w.anyLogged});
   var weeksHit=weeksLogged.filter(function(w){return w.hit}).length;
   var weeksCounted=weeksLogged.length;
   var arrPct=S.arrears?Math.round(Math.min(100,S.paidArrears/S.arrears*100)):0;
-  var legacyDone=S.legacyItems.filter(function(i){return i.done}).length;
-  var goalsTxt = S.goals.length ?
-    S.goals.map(function(g){var p=g.target?Math.round(g.current/g.target*100):0;return g.n+' '+p+'%'}).join(' · ')
-    : 'no goals set';
+  var goalsTxt = S.goals.length ? S.goals.map(function(g){var p=g.target?Math.round(g.current/g.target*100):0;return esc(g.n)+' '+p+'%'}).join(' · ') : 'no goals set';
 
   var leafRows='';
   for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var v=S.daily[iso(d)];
@@ -1576,122 +1432,38 @@ function openTreeDetail(){
       (!w.anyLogged?'not logged':money(w.total)+(w.hit?' ✓':' under'))+'</b></div>'}).join('');
 
   var wilt=c.logged>=4 && c.pct<40;
-  var wiltNote=wilt?
-    '<div class="warnbox">Thinning right now: only '+c.hit+' of the last 14 days cleared $100 — that\'s '+c.pct+'%, under the 40% line that keeps the canopy full. It comes back the day a strong stretch starts again. Roots and trunk don\'t lose anything — only the leaf layer reflects this.</div>':'';
+  var wiltNote=wilt?'<div class="warnbox">Thinning right now: only '+c.hit+' of the last '+c.logged+' logged days cleared $100 — that\'s '+c.pct+'%. It comes back the day a strong stretch starts again. Roots and trunk don\'t lose anything.</div>':'';
 
-  sheet('<div class="sh-t">What\'s growing</div><div class="sh-s">Every part of the tree, explained.</div>'+
-    wiltNote+
+  sheet('<div class="sh-t">What\'s growing</div><div class="sh-s">Every part of the tree, explained.</div>'+wiltNote+
     '<h2 style="margin-top:16px">Roots — '+st+' day streak</h2>'+
-    '<div class="note">Roots grow every day you log something, good or bad. They track that you\'re showing up, not how much you made. '+
-    (st===0?'No active streak right now — log today to start one.':'Currently '+st+' day'+(st===1?'':'s')+' in a row logged.')+'</div>'+
-
+    '<div class="note">Roots grow every day you log something, good or bad. '+(st===0?'No active streak right now — log today to start one.':'Currently '+st+' day'+(st===1?'':'s')+' in a row logged.')+'</div>'+
     '<h2 style="margin-top:18px">Trunk — '+mi+' milestones</h2>'+
-    '<div class="note">Grows permanently with real progress: DCF items completed and every '+money(WEEKLY_ARR())+' chunk paid off the arrears. Never shrinks.</div>'+
-
+    '<div class="note">Grows permanently with real progress: DCF items, Legacy tasks, and every '+money(WEEKLY_ARR())+' chunk paid off the arrears. Never shrinks.</div>'+
     '<h2 style="margin-top:18px">Guardian branch — DCF</h2>'+
     '<div class="mini"><i style="width:'+(S.dcfItems.length?Math.round(dcfDone/S.dcfItems.length*100):0)+'%"></i></div>'+
     '<div class="note">'+dcfDone+' of '+S.dcfItems.length+' checklist items done.</div>'+
-
     '<h2 style="margin-top:18px">Trader branch — income discipline</h2>'+
     '<div class="mini"><i style="width:'+(weeksCounted?Math.round(weeksHit/weeksCounted*100):0)+'%"></i></div>'+
-    '<div class="note">'+(weeksCounted?weeksHit+' of '+weeksCounted+' logged week'+(weeksCounted===1?'':'s')+' cleared your '+money(FLOOR())+' floor':'No weeks logged yet')+'. This tracks driving discipline, not trades — that stays outside the app on purpose.</div>'+
+    '<div class="note">'+(weeksCounted?weeksHit+' of '+weeksCounted+' logged week'+(weeksCounted===1?'':'s')+' cleared your '+money(FLOOR())+' floor':'No weeks logged yet')+'. This tracks driving discipline, not trades.</div>'+
     weekRows+
-
     '<h2 style="margin-top:18px">Legacy branch — long-term stability</h2>'+
     '<div class="mini"><i style="width:'+arrPct+'%"></i></div>'+
     '<div class="note">Arrears '+arrPct+'% paid off · vehicle reserve '+money(S.carReserve)+' · '+S.legacyItems.length+' legacy task'+(S.legacyItems.length===1?'':'s')+' ('+legacyDone+' done) · '+goalsTxt+'</div>'+
-
-    '<h2 style="margin-top:18px">Leaves — last 14 days</h2>'+
-    leafRows+
-
+    '<h2 style="margin-top:18px">Leaves — last 14 days</h2>'+leafRows+
     '<button class="btn" style="margin-top:16px" onclick="closeSheet()">Close</button>');
 }
 
-function openLog(presetDate){
-  var k = presetDate || iso(today());
-  var v=S.daily[k];
-  sheet('<div class="sh-t">Log a day</div><div class="sh-s">Only actual driving/gig income — never a bill or rent payment.</div>'+
-    '<div class="field"><label class="f">Which day</label><input id="logday" type="date" value="'+k+'" max="'+iso(today())+'" onchange="fillLogAmt()"></div>'+
-    '<div class="field"><label class="f">Amount cleared after gas</label>'+
-    '<input id="amt" type="number" inputmode="decimal" placeholder="100" value="'+(v!==undefined?v:'')+'"></div>'+
-    '<div class="okbox">When a day clears $100, $40 goes to the vehicle reserve and $40 to the show fund automatically.</div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="saveLog()">Save</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('amt');if(e)e.focus()},220);
+/* ---------- sheet plumbing ---------- */
+function sheet(html){
+  document.getElementById('sheet').innerHTML=
+  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="theSheet"><div class="grab"></div>'+html+'</div></div>';
+  document.body.style.overflow='hidden';
+  var el=document.getElementById('theSheet'),y0=null,dy=0;
+  el.addEventListener('touchstart',function(e){if(el.scrollTop>0)return;y0=e.touches[0].clientY;dy=0},{passive:true});
+  el.addEventListener('touchmove',function(e){if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy>0){el.style.transform='translateY('+dy+'px)';el.style.transition='none'}},{passive:true});
+  el.addEventListener('touchend',function(){if(y0===null)return;el.style.transition='transform .25s ease-out';if(dy>90){closeSheet()}else{el.style.transform=''}y0=null;dy=0});
 }
-function fillLogAmt(){
-  var k=document.getElementById('logday').value;
-  document.getElementById('amt').value = S.daily[k]!==undefined ? S.daily[k] : '';
-}
-function saveLog(){
-  var k=document.getElementById('logday').value;
-  var e=document.getElementById('amt'),n=parseFloat(e.value);
-  if(isNaN(n)||n<0){e.style.borderColor='var(--bad)';return}
-  var had=S.daily[k]!==undefined;
-  S.daily[k]=n;
-  // funds are set manually — the app never invents money you did not move
-  save();closeSheet();render();
-}
-function payArr(){
-  sheet('<div class="sh-t">Payment to landlord</div><div class="sh-s">Log it here right after you send it. Screenshot the transfer.</div>'+
-    '<div class="field"><label class="f">Amount</label><input id="pa" type="number" inputmode="decimal" placeholder="250"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="doPay()">Log payment</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function doPay(){var e=document.getElementById('pa'),n=parseFloat(e.value);
-  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
-  S.paidArrears+=n;save();closeSheet();render()}
-function setArr(){
-  sheet('<div class="sh-t">Set arrears balance</div><div class="sh-s">Use the number in the written agreement.</div>'+
-    '<div class="field"><label class="f">Total owed</label><input id="sa" type="number" inputmode="decimal" value="'+S.arrears+'"></div>'+
-    '<div class="field"><label class="f">Already paid</label><input id="sp" type="number" inputmode="decimal" value="'+S.paidArrears+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="doSetArr()">Save</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-}
-function doSetArr(){var a=parseFloat(document.getElementById('sa').value),
-  p=parseFloat(document.getElementById('sp').value);
-  if(isNaN(a)||a<0){document.getElementById('sa').style.borderColor='var(--bad)';return}
-  S.arrears=a;S.paidArrears=isNaN(p)?0:p;save();closeSheet();render()}
-
-function openContact(){
-  sheet('<div class="sh-t">Record of contact</div><div class="sh-s">Who you spoke to and what was said. Plain facts, no interpretation.</div>'+
-    '<div class="field"><label class="f">Who</label><input id="cwho" placeholder="e.g. Daphne Serrano · DCF, or Harrison · landlord"></div>'+
-    '<div class="field"><label class="f">What happened</label>'+
-    '<textarea id="ct" style="width:100%;height:110px;font:inherit;background:var(--s2);color:var(--tx);border:1px solid var(--bd2);border-radius:12px;padding:13px 14px" placeholder="Called re: insurance copy. She confirmed receipt and said nothing further needed."></textarea></div>'+
-    '<div class="field"><label class="f">Date</label><input id="cdate" type="date" value="'+iso(today())+'"></div>'+
-    '<button class="btn go" style="margin-top:14px" onclick="doContact()">Save entry</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('cwho');if(e)e.focus()},220);
-}
-function doContact(){
-  var t=document.getElementById('ct');
-  if(!t.value.trim()){t.style.borderColor='var(--bad)';return}
-  var who=document.getElementById('cwho').value.trim();
-  var dt=document.getElementById('cdate').value||iso(today());
-  S.contacts.push({id:'c'+Date.now(),date:dt,who:who,t:t.value.trim()});
-  save();closeSheet();render();
-}
-function delContact(id){
-  S.contacts=S.contacts.filter(function(c){return c.id!==id});
-  save();closeSheet();render();
-}
-function openContactView(id){
-  var c=S.contacts.find(function(x){return x.id===id});
-  if(!c)return;
-  var when=c.date?new Date(c.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}):(c.d||'');
-  sheet('<div class="sh-t">'+esc(c.who||'Contact')+'</div><div class="sh-s">'+esc(when)+'</div>'+
-    '<div class="card"><div class="note" style="white-space:pre-wrap">'+esc(c.t)+'</div></div>'+
-    '<button class="btn sm" style="margin-top:12px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delContact(\''+id+'\')">Delete this entry</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
-}
-
-function wipe(){
-  sheet('<div class="sh-t">Reset everything?</div><div class="sh-s">Every logged day, payment, and checklist item is erased. This cannot be undone.</div>'+
-    '<div class="warnbox">Your streak and tree go back to zero.</div>'+
-    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doWipe()">Yes, erase it all</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Keep my data</button>');
-}
-function doWipe(){S=JSON.parse(JSON.stringify(DEF));save();closeSheet();render()}
+function closeSheet(){document.getElementById('sheet').innerHTML='';document.body.style.overflow=''}
 
 /* ---------- nav ---------- */
 var VIEWS=['home','score','money','dcf','hist'];
@@ -1699,8 +1471,7 @@ function go(v){
   document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.dataset.v===v)});
   VIEWS.forEach(function(n){document.getElementById('v-'+n).classList.toggle('hide',n!==v)});
   window.scrollTo(0,0);
-  if(v==='score'){renderChips();autofillStart();runScore();
-    setTimeout(function(){var e=document.getElementById('scPay');if(e)e.focus()},120);}
+  if(v==='score'){renderChips();autofillStart();runScore();setTimeout(function(){var e=document.getElementById('scPay');if(e)e.focus()},120)}
 }
 document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){go(b.dataset.v)}});
 
