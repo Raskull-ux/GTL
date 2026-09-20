@@ -307,13 +307,13 @@ var DEF={
   billPaidAmt:{},      // 'billid-YYYY-MM': dollars paid toward that bill this cycle
   rentPaidAmt:{},       // 'YYYY-MM': dollars paid toward rent
   bills:[
-    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · brother covers part'},
-    {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · ON A PLAN'},
-    {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work'},
-    {id:'cable',n:'Cable / internet',a:80,    day:15,note:''},
-    {id:'laun', n:'Laundry',         a:25,    day:1, note:''},
-    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:''},
-    {id:'weed', n:'Weed',            a:360,   day:1, note:'Every 3-4 days, $36-60/half oz depending on dispensary'}
+    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · brother covers part', pastDue:0},
+    {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · ON A PLAN', pastDue:0},
+    {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work', pastDue:0},
+    {id:'cable',n:'Cable / internet',a:80,    day:15,note:'', pastDue:0},
+    {id:'laun', n:'Laundry',         a:25,    day:1, note:'', pastDue:0},
+    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:'', pastDue:0},
+    {id:'weed', n:'Weed',            a:360,   day:1, note:'Every 3-4 days, $36-60/half oz depending on dispensary', pastDue:0}
   ],
   income:[
     {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'},
@@ -351,6 +351,7 @@ var DEF={
 var S=Object.assign({},DEF,load()||{});
 S.settings=Object.assign({},DEF.settings,S.settings||{});
 if(!S.bills)S.bills=DEF.bills;
+S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0});
 if(!S.income)S.income=DEF.income;
 if(!S.extras)S.extras=DEF.extras;
 if(!S.goals)S.goals=DEF.goals;
@@ -392,7 +393,9 @@ function billRemaining(b,d){
   return Math.max(0,b.a-paid);
 }
 function billPaidThisCycle(b,d){return S.billPaidAmt[billKey(b.id,d)]||0}
-function billIsPaid(b,d){return billRemaining(b,d)<=0}
+function billIsPaid(b,d){return billRemaining(b,d)<=0 && (b.pastDue||0)<=0}
+/* total owed right now: what's overdue from before, plus what's left of this cycle's normal charge */
+function billTotalOwed(b,d){return (b.pastDue||0)+billRemaining(b,d)}
 
 /* ---------- computed ---------- */
 function weekTotal(){var s=weekStart(today()),t=0;
@@ -426,7 +429,7 @@ function otherIncomeThisMonth(){var k=mKey(today()),s=0;S.otherIncome.forEach(fu
 function monthSurvival(){
   var t=today(),k=mKey(t);
   var billsTotal=0;
-  S.bills.forEach(function(b){billsTotal+=billRemaining(b,t)});
+  S.bills.forEach(function(b){billsTotal+=billTotalOwed(b,t)});
   var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[k]||0));
   var arrearsLeft=Math.max(0,S.arrears-S.paidArrears);
   var extrasLeft=0;S.extras.forEach(function(x){if(!x.done)extrasLeft+=x.a});
@@ -439,9 +442,9 @@ function monthSurvival(){
 function weekSlice(){
   var t=today(),items=[],total=0;
   S.bills.forEach(function(b){
-    var rem=billRemaining(b,t);if(rem<=0)return;
+    var owedTotal=billTotalOwed(b,t);if(owedTotal<=0)return;
     var dd=daysUntil(b.day);
-    if(dd<=7){items.push({n:b.n,a:rem,d:dd});total+=rem}
+    if(dd<=7){items.push({n:b.n,a:owedTotal,d:dd});total+=owedTotal}
   });
   var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
   if(rentLeft>0){var dr=daysUntil(S.settings.rentDay);if(dr<=7){items.push({n:'Rent',a:rentLeft,d:dr});total+=rentLeft}}
@@ -587,9 +590,10 @@ function render(){
     up.push({n:t.toLocaleDateString('en-US',{month:'long'})+' rent',a:money(rentRemaining)+(rentPaidSoFar>0?' left':''),d:dR+' days · by the '+ordinal(S.settings.rentDay),cls:dR<=5?'urgent':dR<=10?'soon':''});
   }
   S.bills.forEach(function(b){
-    var rem=billRemaining(b,t);if(rem<=0)return;
+    var owedTotal=billTotalOwed(b,t);if(owedTotal<=0)return;
     var dd=daysUntil(b.day);
-    up.push({n:b.n,a:money2(rem)+(billPaidThisCycle(b,t)>0?' left':''),d:dd+' days · by the '+b.day+'th',cls:dd<=3?'urgent':dd<=7?'soon':''});
+    var lbl = (b.pastDue||0)>0 ? money2(owedTotal)+' (incl. '+money2(b.pastDue)+' past due)' : money2(owedTotal);
+    up.push({n:b.n,a:lbl,d:dd+' days · by the '+b.day+'th',cls:(b.pastDue||0)>0?'urgent':dd<=3?'urgent':dd<=7?'soon':''});
   });
   S.dcfItems.forEach(function(i){
     if(i.done||!i.due)return;
@@ -634,14 +638,17 @@ function render(){
 
   // BILLS — now with real remaining balance, this is the actual bug fix
   document.getElementById('billList').innerHTML=S.bills.map(function(b){
-    var remB=billRemaining(b,t), paidSoFar=billPaidThisCycle(b,t), dd=daysUntil(b.day), isPaid=remB<=0;
+    var remB=billRemaining(b,t), paidSoFar=billPaidThisCycle(b,t), dd=daysUntil(b.day);
+    var pd=b.pastDue||0, total=pd+remB, isPaid=total<=0;
     var cls=isPaid?'done':dd<=3?'urgent':dd<=7?'soon':'';
     var pill=isPaid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
              dd<=7?'<span class="pill p-amb">'+dd+'d</span>':'<span class="pill p-gry">'+dd+'d</span>';
+    var metaLine='By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+(paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'');
     return '<div class="card '+cls+'"><div class="row" onclick="openBill(\''+b.id+'\')"><div>'+
-      '<div class="nm">'+esc(b.n)+pill+'</div><div class="mt">By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+
-      (paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'')+'</div></div>'+
-      '<div class="amt">'+money2(remB)+'</div></div>'+
+      '<div class="nm">'+esc(b.n)+pill+'</div><div class="mt">'+metaLine+'</div></div>'+
+      '<div class="amt">'+money2(total)+'</div></div>'+
+      (pd>0?'<div class="row" style="margin-top:8px;padding-top:8px"><div class="mt">Past due</div><b style="color:var(--warn);font-weight:500">'+money2(pd)+'</b></div>'+
+        '<div class="row" style="margin-top:6px;padding-top:0;border-top:none"><div class="mt">This month</div><b style="font-weight:500">'+money2(remB)+' of '+money2(b.a)+'</b></div>':'')+
       (paidSoFar>0?'<div class="mini"><i style="width:'+Math.min(100,paidSoFar/b.a*100)+'%"></i></div>':'')+
       '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();openPayBill(\''+b.id+'\')">'+
       (isPaid?'Paid':'Log payment')+'</button>'+
@@ -783,9 +790,10 @@ function render(){
 /* ---------- ACTIONS: bills (fixed) ---------- */
 function openBill(id){
   var b=id?S.bills.find(function(x){return x.id===id}):null;
-  sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">Name, amount, and day of month it\'s due.</div>'+
+  sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">The monthly amount is what it normally costs. Past due is separate — how far behind you are, if at all.</div>'+
     '<div class="field"><label class="f">Name</label><input id="bn" placeholder="e.g. Car insurance" value="'+esc(b?b.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Amount</label><input id="ba" type="number" inputmode="decimal" placeholder="0" value="'+(b?b.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Normal monthly amount</label><input id="ba" type="number" inputmode="decimal" placeholder="0" value="'+(b?b.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Past due (separate from the monthly charge — 0 if current)</label><input id="bpd" type="number" inputmode="decimal" placeholder="0" value="'+(b?(b.pastDue||0):0)+'"></div>'+
     '<div class="field"><label class="f">Due day of month</label><input id="bd" type="number" min="1" max="31" placeholder="15" value="'+(b?b.day:'')+'"></div>'+
     '<div class="field"><label class="f">Note (optional)</label><input id="bnote" placeholder="e.g. on a payment plan" value="'+esc(b?(b.note||''):'')+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveBill(\''+(id||'')+'\')">Save</button>'+
@@ -795,13 +803,15 @@ function openBill(id){
 function saveBill(id){
   var n=document.getElementById('bn').value.trim();
   var a=parseFloat(document.getElementById('ba').value);
+  var pd=parseFloat(document.getElementById('bpd').value);
   var d=parseInt(document.getElementById('bd').value,10);
   var note=document.getElementById('bnote').value.trim();
   if(!n){document.getElementById('bn').style.borderColor='var(--bad)';return}
   if(isNaN(a)||a<0){document.getElementById('ba').style.borderColor='var(--bad)';return}
+  if(isNaN(pd)||pd<0)pd=0;
   if(isNaN(d)||d<1||d>31){document.getElementById('bd').style.borderColor='var(--bad)';return}
-  if(id){var b=S.bills.find(function(x){return x.id===id});b.n=n;b.a=a;b.day=d;b.note=note}
-  else{S.bills.push({id:'b'+Date.now(),n:n,a:a,day:d,note:note})}
+  if(id){var b=S.bills.find(function(x){return x.id===id});b.n=n;b.a=a;b.pastDue=pd;b.day=d;b.note=note}
+  else{S.bills.push({id:'b'+Date.now(),n:n,a:a,pastDue:pd,day:d,note:note})}
   save();closeSheet();render();
 }
 function delBill(id){S.bills=S.bills.filter(function(x){return x.id!==id});save();closeSheet();render()}
@@ -812,33 +822,61 @@ function openPayBill(billId){
   var b=S.bills.find(function(x){return x.id===billId});
   if(!b)return;
   var already=billPaidThisCycle(b,today());
-  sheet('<div class="sh-t">Log a payment</div><div class="sh-s">'+esc(b.n)+' — '+money2(billRemaining(b,today()))+' left of '+money2(b.a)+
-    (already>0?' ('+money2(already)+' already logged this cycle)':'')+'. Enter what you\'re sending now — partial is fine.</div>'+
-    '<div class="field"><label class="f">Amount you\'re paying now</label><input id="pbAmt" type="number" inputmode="decimal" placeholder="'+billRemaining(b,today()).toFixed(2)+'"></div>'+
+  var rem=billRemaining(b,today());
+  var pd=b.pastDue||0;
+  var total=pd+rem;
+  var breakdown = pd>0 ?
+    'Past due: '+money2(pd)+' · This month: '+money2(rem)+' · Total: '+money2(total)+'. A payment pays down the past-due amount first.'
+    : money2(rem)+' left of '+money2(b.a)+' this month'+(already>0?' ('+money2(already)+' already logged)':'')+'.';
+  sheet('<div class="sh-t">Log a payment</div><div class="sh-s">'+esc(b.n)+' — '+breakdown+' Defaults to paying it off in full — change the amount if you\'re only sending part.</div>'+
+    '<div class="field"><label class="f">Amount you\'re paying now</label><input id="pbAmt" type="number" inputmode="decimal" value="'+total.toFixed(2)+'"></div>'+
     '<div class="field"><label class="f">Date</label><input id="pbDate" type="date" value="'+iso(today())+'"></div>'+
+    '<div id="pbErr" class="warnbox" style="display:none">Enter an amount greater than $0 before saving.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="savePayBill(\''+billId+'\')">Log it</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('pbAmt');if(e)e.focus()},220);
+  setTimeout(function(){var e=document.getElementById('pbAmt');if(e){e.focus();e.select&&e.select()}},220);
 }
 function savePayBill(billId){
   var b=S.bills.find(function(x){return x.id===billId});
   var amt=parseFloat(document.getElementById('pbAmt').value);
   var dt=document.getElementById('pbDate').value||iso(today());
-  if(isNaN(amt)||amt<=0){document.getElementById('pbAmt').style.borderColor='var(--bad)';return}
+  if(isNaN(amt)||amt<=0){
+    document.getElementById('pbAmt').style.borderColor='var(--bad)';
+    var err=document.getElementById('pbErr');if(err)err.style.display='block';
+    return;
+  }
   var dObj=new Date(dt+'T00:00:00');
-  var key=billKey(billId,dObj);
-  S.billPaidAmt[key]=(S.billPaidAmt[key]||0)+amt;
+  var left=amt;
+  // pay down past due first, same order a real company applies a payment
+  if(b && b.pastDue>0){
+    var toPastDue=Math.min(left,b.pastDue);
+    b.pastDue-=toPastDue;
+    left-=toPastDue;
+  }
+  if(left>0){
+    var key=billKey(billId,dObj);
+    S.billPaidAmt[key]=(S.billPaidAmt[key]||0)+left;
+  }
   S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b?b.n:'Bill',amount:amt});
   save();closeSheet();render();
-  var remAfter=b?billRemaining(b,dObj):0;
-  toast('Logged '+money2(amt)+' to '+(b?b.n:'bill')+' — '+(remAfter<=0?'paid in full':money2(remAfter)+' left'));
+  var totalAfter=b?billTotalOwed(b,dObj):0;
+  toast('Logged '+money2(amt)+' to '+(b?b.n:'bill')+' — '+(totalAfter<=0?'paid in full':money2(totalAfter)+' left total'));
 }
 /* quick toggle: force this cycle to fully paid, or undo back to zero paid */
 function resetBillCycle(billId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
   var key=billKey(billId,today());
   var isPaid=billIsPaid(b,today());
-  S.billPaidAmt[key]=isPaid?0:b.a;
+  if(isPaid){
+    // undo: restore whatever past due existed before "mark paid" cleared it
+    S.billPaidAmt[key]=0;
+    b.pastDue = b._pastDueSnapshot!==undefined ? b._pastDueSnapshot : b.pastDue;
+    delete b._pastDueSnapshot;
+  }else{
+    b._pastDueSnapshot=b.pastDue||0;
+    S.billPaidAmt[key]=b.a;
+    b.pastDue=0;
+  }
   save();render();
 }
 
@@ -1385,6 +1423,7 @@ function applyImport(raw){
   S=Object.assign({},DEF,d);
   S.settings=Object.assign({},DEF.settings,S.settings||{});
   if(!S.bills)S.bills=DEF.bills;
+  S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0});
   if(!S.income)S.income=DEF.income;
   if(!S.extras)S.extras=DEF.extras;
   if(!S.goals)S.goals=DEF.goals;
