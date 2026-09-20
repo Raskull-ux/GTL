@@ -307,7 +307,8 @@ var DEF={
   billPaidAmt:{},      // 'billid-YYYY-MM': dollars paid toward that bill this cycle
   rentPaidAmt:{},       // 'YYYY-MM': dollars paid toward rent
   bills:[
-    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Scheduled payment · brother covers part', pastDue:0},
+    {id:'att',  n:'AT&T',            a:361.81,day:17,note:'Split with contributors below', pastDue:0,
+     contributors:[{id:'bro',n:'Brother',amount:120},{id:'max',n:'Max',amount:0}]},
     {id:'ever', n:'Eversource',      a:255,   day:19,note:'Gas + electric · ON A PLAN', pastDue:0},
     {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work', pastDue:0},
     {id:'cable',n:'Cable / internet',a:80,    day:15,note:'', pastDue:0},
@@ -316,8 +317,7 @@ var DEF={
     {id:'weed', n:'Weed',            a:360,   day:1, note:'Every 3-4 days, $36-60/half oz depending on dispensary', pastDue:0}
   ],
   income:[
-    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'},
-    {id:'bro', n:'Brother · AT&T', a:120,note:'Monthly'}
+    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'}
   ],
   extras:[
     {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — a prior payment gap',done:false}
@@ -351,8 +351,15 @@ var DEF={
 var S=Object.assign({},DEF,load()||{});
 S.settings=Object.assign({},DEF.settings,S.settings||{});
 if(!S.bills)S.bills=DEF.bills;
-S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0});
+S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0;if(!b.contributors)b.contributors=[]});
+if(!S.contribApplied)S.contribApplied={};
 if(!S.income)S.income=DEF.income;
+if(!S.seen)S.seen={};
+if(!S.seen.contribMigrated){
+  var oldBro=S.income.find(function(i){return i.id==='bro'});
+  if(oldBro){S.income=S.income.filter(function(i){return i.id!=='bro'})}
+  S.seen.contribMigrated=1;save();
+}
 if(!S.extras)S.extras=DEF.extras;
 if(!S.goals)S.goals=DEF.goals;
 if(!S.dcfItems)S.dcfItems=DEF.dcfItems;
@@ -644,16 +651,25 @@ function render(){
     var pill=isPaid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
              dd<=7?'<span class="pill p-amb">'+dd+'d</span>':'<span class="pill p-gry">'+dd+'d</span>';
     var metaLine='By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+(paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'');
+    var contribRows = (b.contributors&&b.contributors.length) ? b.contributors.map(function(c){
+      var ck=contribKey(b.id,c.id,t), on=!!S.contribApplied[ck];
+      return '<div class="chk'+(on?' on':'')+'" style="padding:8px 0" onclick="event.stopPropagation();toggleContributor(\''+b.id+'\',\''+c.id+'\')">'+
+        '<div class="box">'+(on?'✓':'')+'</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center">'+
+        '<span class="nm" style="font-size:14px">'+esc(c.n)+'</span><span class="mt" style="margin:0">'+money2(c.amount)+'</span></div>'+
+        '<button class="btn sm" style="padding:4px 8px;margin-left:8px" onclick="event.stopPropagation();openContributor(\''+b.id+'\',\''+c.id+'\')">Edit</button></div>'
+    }).join('') : '';
     return '<div class="card '+cls+'"><div class="row" onclick="openBill(\''+b.id+'\')"><div>'+
       '<div class="nm">'+esc(b.n)+pill+'</div><div class="mt">'+metaLine+'</div></div>'+
       '<div class="amt">'+money2(total)+'</div></div>'+
       (pd>0?'<div class="row" style="margin-top:8px;padding-top:8px"><div class="mt">Past due</div><b style="color:var(--warn);font-weight:500">'+money2(pd)+'</b></div>'+
         '<div class="row" style="margin-top:6px;padding-top:0;border-top:none"><div class="mt">This month</div><b style="font-weight:500">'+money2(remB)+' of '+money2(b.a)+'</b></div>':'')+
       (paidSoFar>0?'<div class="mini"><i style="width:'+Math.min(100,paidSoFar/b.a*100)+'%"></i></div>':'')+
+      (contribRows?'<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd)"><div class="mt" style="margin-bottom:2px">Who else covers this</div>'+contribRows+'</div>':'')+
       '<div class="btnrow"><button class="btn sm" onclick="event.stopPropagation();openPayBill(\''+b.id+'\')">'+
       (isPaid?'Paid':'Log payment')+'</button>'+
       '<button class="btn sm" onclick="event.stopPropagation();resetBillCycle(\''+b.id+'\')">'+
-      (isPaid?'Undo':'Mark paid')+'</button></div></div>'}).join('');
+      (isPaid?'Undo':'Mark paid')+'</button>'+
+      '<button class="btn sm" onclick="event.stopPropagation();openContributor(\''+b.id+'\',null)">+ Person</button></div></div>'}).join('');
 
   document.getElementById('inCard').innerHTML=S.income.map(function(inc){
     return '<div class="row" onclick="openIncome(\''+inc.id+'\')"><div><div class="nm">'+esc(inc.n)+
@@ -863,6 +879,58 @@ function savePayBill(billId){
   toast('Logged '+money2(amt)+' to '+(b?b.n:'bill')+' — '+(totalAfter<=0?'paid in full':money2(totalAfter)+' left total'));
 }
 /* quick toggle: force this cycle to fully paid, or undo back to zero paid */
+/* ---------- bill contributors: other people who cover part of a bill ---------- */
+function contribKey(billId,contribId,d){return contribId+'-'+billKey(billId,d)}
+function toggleContributor(billId,contribId){
+  var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  var c=b.contributors.find(function(x){return x.id===contribId});if(!c)return;
+  var key=contribKey(billId,contribId,today());
+  if(S.contribApplied[key]){
+    // undo: give back exactly what was applied, wherever it went
+    var applied=S.contribApplied[key];
+    b.pastDue=(b.pastDue||0)+applied.toPastDue;
+    var bk=billKey(billId,today());
+    S.billPaidAmt[bk]=(S.billPaidAmt[bk]||0)-applied.toCurrent;
+    delete S.contribApplied[key];
+  }else{
+    // apply now: same past-due-first rule as any other payment
+    var amt=c.amount||0;
+    if(amt<=0){save();render();return}
+    var left=amt, toPastDue=0;
+    if(b.pastDue>0){toPastDue=Math.min(left,b.pastDue);b.pastDue-=toPastDue;left-=toPastDue}
+    var bk2=billKey(billId,today());
+    if(left>0){S.billPaidAmt[bk2]=(S.billPaidAmt[bk2]||0)+left}
+    S.contribApplied[key]={toPastDue:toPastDue,toCurrent:left};
+    S.payments.push({id:'p'+Date.now(),date:iso(today()),billId:billId,label:b.n+' — '+c.n,amount:amt});
+  }
+  save();render();
+}
+function openContributor(billId,contribId){
+  var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  var c=contribId?b.contributors.find(function(x){return x.id===contribId}):null;
+  sheet('<div class="sh-t">'+(c?'Edit contributor':'Add a contributor')+'</div><div class="sh-s">Someone else who covers part of '+esc(b.n)+'.</div>'+
+    '<div class="field"><label class="f">Name</label><input id="cbn" placeholder="e.g. Max" value="'+esc(c?c.n:'')+'"></div>'+
+    '<div class="field"><label class="f">Their share</label><input id="cba" type="number" inputmode="decimal" placeholder="0" value="'+(c?c.amount:'')+'"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveContributor(\''+billId+'\',\''+(contribId||'')+'\')">Save</button>'+
+    (c?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delContributor(\''+billId+'\',\''+contribId+'\')">Remove</button>':'')+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveContributor(billId,contribId){
+  var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  var n=document.getElementById('cbn').value.trim();
+  var a=parseFloat(document.getElementById('cba').value);
+  if(!n){document.getElementById('cbn').style.borderColor='var(--bad)';return}
+  if(isNaN(a)||a<0){document.getElementById('cba').style.borderColor='var(--bad)';return}
+  if(contribId){var c=b.contributors.find(function(x){return x.id===contribId});c.n=n;c.amount=a}
+  else{b.contributors.push({id:'c'+Date.now(),n:n,amount:a})}
+  save();closeSheet();render();
+}
+function delContributor(billId,contribId){
+  var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  b.contributors=b.contributors.filter(function(x){return x.id!==contribId});
+  save();closeSheet();render();
+}
+
 function resetBillCycle(billId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
   var key=billKey(billId,today());
@@ -1495,12 +1563,8 @@ function openTreeDetail(){
 /* ---------- sheet plumbing ---------- */
 function sheet(html){
   document.getElementById('sheet').innerHTML=
-  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="theSheet"><div class="grab"></div>'+html+'</div></div>';
+  '<div class="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="theSheet"><div class="grab" onclick="closeSheet()" style="cursor:pointer"></div>'+html+'</div></div>';
   document.body.style.overflow='hidden';
-  var el=document.getElementById('theSheet'),y0=null,dy=0;
-  el.addEventListener('touchstart',function(e){if(el.scrollTop>0)return;y0=e.touches[0].clientY;dy=0},{passive:true});
-  el.addEventListener('touchmove',function(e){if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy>0){el.style.transform='translateY('+dy+'px)';el.style.transition='none'}},{passive:true});
-  el.addEventListener('touchend',function(){if(y0===null)return;el.style.transition='transform .25s ease-out';if(dy>90){closeSheet()}else{el.style.transform=''}y0=null;dy=0});
 }
 function closeSheet(){document.getElementById('sheet').innerHTML='';document.body.style.overflow=''}
 
