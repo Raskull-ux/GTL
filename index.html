@@ -302,6 +302,7 @@ function escAttr(s){return String(s==null?'':s)
 /* ---------- defaults ---------- */
 var DEF={
   daily:{},
+  restDays:{},
   arrears:2200, paidArrears:0,
   carReserve:0,
   billPaidAmt:{},      // 'billid-YYYY-MM': dollars paid toward that bill this cycle
@@ -313,8 +314,7 @@ var DEF={
     {id:'geico',n:'Geico',           a:140,   day:22,note:'Insurance · lapse ends gig work', pastDue:0},
     {id:'cable',n:'Cable / internet',a:80,    day:15,note:'', pastDue:0},
     {id:'laun', n:'Laundry',         a:25,    day:1, note:'', pastDue:0},
-    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:'', pastDue:0},
-    {id:'weed', n:'Weed',            a:360,   day:1, note:'Every 3-4 days, $36-60/half oz depending on dispensary', pastDue:0}
+    {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:'', pastDue:0}
   ],
   income:[
     {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'}
@@ -351,8 +351,9 @@ var DEF={
 var S=Object.assign({},DEF,load()||{});
 S.settings=Object.assign({},DEF.settings,S.settings||{});
 if(!S.bills)S.bills=DEF.bills;
-S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0;if(!b.contributors)b.contributors=[]});
+S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0;if(!b.contributors)b.contributors=[];if(!b.billingType)b.billingType='fixed'});
 if(!S.contribApplied)S.contribApplied={};
+if(!S.restDays)S.restDays={};
 if(!S.income)S.income=DEF.income;
 if(!S.seen)S.seen={};
 if(!S.seen.contribMigrated){
@@ -395,14 +396,36 @@ function daysUntilDate(y,m,d){var t=new Date();t.setHours(0,0,0,0);
 
 /* ---------- bill remaining-balance helpers (the actual fix) ---------- */
 function billKey(id,d){return id+'-'+mKey(d||today())}
+function addDays(dateStr,n){var d=new Date(dateStr+'T00:00:00');d.setDate(d.getDate()+n);return d}
+/* rolling bills (Hulu-style): due date = last payment + interval, not a fixed calendar day.
+   No past-due growth — it's either current (paid within the window) or off. */
+function nextDueRolling(b){
+  if(!b.lastPaid)return today(); // never paid = due now
+  return addDays(b.lastPaid,b.intervalDays||30);
+}
+function daysUntilRolling(b){
+  var t=today();t.setHours(0,0,0,0);
+  var due=nextDueRolling(b);due.setHours(0,0,0,0);
+  return Math.round((due-t)/86400000);
+}
 function billRemaining(b,d){
+  if(b.billingType==='rolling'){
+    return daysUntilRolling(b)<=0 ? b.a : 0;
+  }
   var paid=S.billPaidAmt[billKey(b.id,d)]||0;
   return Math.max(0,b.a-paid);
 }
 function billPaidThisCycle(b,d){return S.billPaidAmt[billKey(b.id,d)]||0}
-function billIsPaid(b,d){return billRemaining(b,d)<=0 && (b.pastDue||0)<=0}
-/* total owed right now: what's overdue from before, plus what's left of this cycle's normal charge */
-function billTotalOwed(b,d){return (b.pastDue||0)+billRemaining(b,d)}
+function billIsPaid(b,d){
+  if(b.billingType==='rolling')return daysUntilRolling(b)>0;
+  return billRemaining(b,d)<=0 && (b.pastDue||0)<=0;
+}
+/* total owed right now: what's overdue from before, plus what's left of this cycle's normal charge.
+   Rolling bills never carry past due — they're just on or off. */
+function billTotalOwed(b,d){
+  if(b.billingType==='rolling')return billRemaining(b,d);
+  return (b.pastDue||0)+billRemaining(b,d);
+}
 
 /* ---------- computed ---------- */
 function weekTotal(){var s=weekStart(today()),t=0;
@@ -413,8 +436,8 @@ function streak(){var c=0,d=new Date();
   if(S.daily[iso(d)]===undefined)d.setDate(d.getDate()-1);
   while(S.daily[iso(d)]!==undefined&&c<400){c++;d.setDate(d.getDate()-1)}return c}
 function last14(){var hit=0,logged=0;
-  for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var v=S.daily[iso(d)];
-    if(v!==undefined){logged++;if(v>=100)hit++}}
+  for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var k=iso(d);var v=S.daily[k];
+    if(v!==undefined && !S.restDays[k]){logged++;if(v>=100)hit++}}
   return{hit:hit,logged:logged,pct:logged>0?Math.round(hit/logged*100):0}}
 function milestones(){var m=S.paidArrears>0&&WEEKLY_ARR()>0?Math.floor(S.paidArrears/WEEKLY_ARR()):0;
   S.dcfItems.forEach(function(i){if(i.done)m++});
@@ -450,7 +473,7 @@ function weekSlice(){
   var t=today(),items=[],total=0;
   S.bills.forEach(function(b){
     var owedTotal=billTotalOwed(b,t);if(owedTotal<=0)return;
-    var dd=daysUntil(b.day);
+    var dd=b.billingType==='rolling'?daysUntilRolling(b):daysUntil(b.day);
     if(dd<=7){items.push({n:b.n,a:owedTotal,d:dd});total+=owedTotal}
   });
   var rentLeft=Math.max(0,RENT()-(S.rentPaidAmt[mKey(t)]||0));
@@ -464,7 +487,7 @@ function weekSlice(){
 }
 function dowAverages(){
   var buckets=[[],[],[],[],[],[],[]];
-  Object.keys(S.daily).forEach(function(k){var d=new Date(k+'T00:00:00');buckets[d.getDay()].push(S.daily[k])});
+  Object.keys(S.daily).forEach(function(k){var d=new Date(k+'T00:00:00');var dow=d.getDay();if(isNaN(dow))return;buckets[dow].push(S.daily[k])});
   return buckets.map(function(vals,i){
     var avg=vals.length?vals.reduce(function(a,b){return a+b},0)/vals.length:null;
     return{day:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i],avg:avg,n:vals.length};
@@ -598,9 +621,11 @@ function render(){
   }
   S.bills.forEach(function(b){
     var owedTotal=billTotalOwed(b,t);if(owedTotal<=0)return;
-    var dd=daysUntil(b.day);
+    var isRolling=b.billingType==='rolling';
+    var dd=isRolling?daysUntilRolling(b):daysUntil(b.day);
+    var dueLbl=isRolling?ordinal(nextDueRolling(b).getDate()):ordinal(b.day);
     var lbl = (b.pastDue||0)>0 ? money2(owedTotal)+' (incl. '+money2(b.pastDue)+' past due)' : money2(owedTotal);
-    up.push({n:b.n,a:lbl,d:dd+' days · by the '+b.day+'th',cls:(b.pastDue||0)>0?'urgent':dd<=3?'urgent':dd<=7?'soon':''});
+    up.push({n:b.n,a:lbl,d:dd+' days · by the '+dueLbl,cls:(b.pastDue||0)>0?'urgent':dd<=3?'urgent':dd<=7?'soon':''});
   });
   S.dcfItems.forEach(function(i){
     if(i.done||!i.due)return;
@@ -645,12 +670,17 @@ function render(){
 
   // BILLS — now with real remaining balance, this is the actual bug fix
   document.getElementById('billList').innerHTML=S.bills.map(function(b){
-    var remB=billRemaining(b,t), paidSoFar=billPaidThisCycle(b,t), dd=daysUntil(b.day);
-    var pd=b.pastDue||0, total=pd+remB, isPaid=total<=0;
+    var isRolling=b.billingType==='rolling';
+    var remB=billRemaining(b,t), paidSoFar=isRolling?0:billPaidThisCycle(b,t);
+    var dd=isRolling?daysUntilRolling(b):daysUntil(b.day);
+    var pd=isRolling?0:(b.pastDue||0), total=isRolling?remB:pd+remB, isPaid=total<=0;
     var cls=isPaid?'done':dd<=3?'urgent':dd<=7?'soon':'';
-    var pill=isPaid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+dd+'d</span>':
-             dd<=7?'<span class="pill p-amb">'+dd+'d</span>':'<span class="pill p-gry">'+dd+'d</span>';
-    var metaLine='By the '+b.day+'th'+(b.note?' · '+esc(b.note):'')+(paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'');
+    var ddLabel=dd<0?Math.abs(dd)+'d late':dd+'d';
+    var pill=isPaid?'<span class="pill p-grn">Paid</span>':dd<=3?'<span class="pill p-red">'+ddLabel+'</span>':
+             dd<=7?'<span class="pill p-amb">'+ddLabel+'</span>':'<span class="pill p-gry">'+ddLabel+'</span>';
+    var metaLine = isRolling
+      ? (b.lastPaid ? 'Renews '+ordinal(nextDueRolling(b).getDate())+(b.note?' · '+esc(b.note):'') : 'Not paid yet'+(b.note?' · '+esc(b.note):''))
+      : 'By the '+ordinal(b.day)+(b.note?' · '+esc(b.note):'')+(paidSoFar>0&&!isPaid?' · '+money2(paidSoFar)+' paid so far':'');
     var contribRows = (b.contributors&&b.contributors.length) ? b.contributors.map(function(c){
       var ck=contribKey(b.id,c.id,t), on=!!S.contribApplied[ck];
       return '<div class="chk'+(on?' on':'')+'" style="padding:8px 0" onclick="event.stopPropagation();toggleContributor(\''+b.id+'\',\''+c.id+'\')">'+
@@ -738,10 +768,13 @@ function render(){
     var k2=iso(cursor), v=S.daily[k2];
     var mLabel=cursor.toLocaleDateString('en-US',{month:'long',year:'numeric'});
     if(mLabel!==lastMonth){rows+='<div class="mt" style="margin:14px 0 4px;letter-spacing:.08em;text-transform:uppercase">'+mLabel+'</div>';lastMonth=mLabel}
+    var isRest=!!S.restDays[k2];
     rows+='<div class="log-row" style="cursor:pointer" onclick="openLog(\''+k2+'\')"><span>'+
       cursor.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</span>'+
-      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
-      (v===undefined?'— tap to add':money(v))+'</b></div>';
+      (isRest
+        ? '<b style="color:var(--tx2)">Rest day'+(v?' · '+money(v):'')+'</b>'
+        : '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
+          (v===undefined?'— tap to add':money(v))+'</b>')+'</div>';
     cursor.setDate(cursor.getDate()-1); guard++;
   }
   document.getElementById('histList').innerHTML=rows;
@@ -806,28 +839,49 @@ function render(){
 /* ---------- ACTIONS: bills (fixed) ---------- */
 function openBill(id){
   var b=id?S.bills.find(function(x){return x.id===id}):null;
-  sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">The monthly amount is what it normally costs. Past due is separate — how far behind you are, if at all.</div>'+
+  var type=b?(b.billingType||'fixed'):'fixed';
+  sheet('<div class="sh-t">'+(b?'Edit bill':'Add a bill')+'</div><div class="sh-s">The monthly amount is what it normally costs.</div>'+
     '<div class="field"><label class="f">Name</label><input id="bn" placeholder="e.g. Car insurance" value="'+esc(b?b.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Normal monthly amount</label><input id="ba" type="number" inputmode="decimal" placeholder="0" value="'+(b?b.a:'')+'"></div>'+
-    '<div class="field"><label class="f">Past due (separate from the monthly charge — 0 if current)</label><input id="bpd" type="number" inputmode="decimal" placeholder="0" value="'+(b?(b.pastDue||0):0)+'"></div>'+
-    '<div class="field"><label class="f">Due day of month</label><input id="bd" type="number" min="1" max="31" placeholder="15" value="'+(b?b.day:'')+'"></div>'+
+    '<div class="field"><label class="f">Normal amount</label><input id="ba" type="number" inputmode="decimal" placeholder="0" value="'+(b?b.a:'')+'"></div>'+
+    '<div class="field"><label class="f">How this bill works</label>'+
+      '<select id="btype" onchange="toggleBillTypeFields()" style="width:100%;padding:12px;border-radius:10px;background:var(--card2);border:1px solid var(--bd);color:var(--fg)">'+
+      '<option value="fixed"'+(type==='fixed'?' selected':'')+'>Fixed date — bills the same day every month (rent, AT&T, Eversource)</option>'+
+      '<option value="rolling"'+(type==='rolling'?' selected':'')+'>Rolls forward — due date resets from whenever you pay (Hulu, Netflix, subscriptions)</option>'+
+      '</select></div>'+
+    '<div id="bd-wrap" class="field" style="display:'+(type==='fixed'?'block':'none')+'"><label class="f">Due day of month</label><input id="bd" type="number" min="1" max="31" placeholder="15" value="'+(b?b.day:'')+'"></div>'+
+    '<div id="bpd-wrap" class="field" style="display:'+(type==='fixed'?'block':'none')+'"><label class="f">Past due (separate from the monthly charge — 0 if current)</label><input id="bpd" type="number" inputmode="decimal" placeholder="0" value="'+(b?(b.pastDue||0):0)+'"></div>'+
+    '<div id="bint-wrap" class="field" style="display:'+(type==='rolling'?'block':'none')+'"><label class="f">Days between payments</label><input id="bint" type="number" min="1" placeholder="30" value="'+(b?(b.intervalDays||30):30)+'"></div>'+
     '<div class="field"><label class="f">Note (optional)</label><input id="bnote" placeholder="e.g. on a payment plan" value="'+esc(b?(b.note||''):'')+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveBill(\''+(id||'')+'\')">Save</button>'+
     (b?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delBill(\''+id+'\')">Delete this bill</button>':'')+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
 }
+function toggleBillTypeFields(){
+  var t=document.getElementById('btype').value;
+  document.getElementById('bd-wrap').style.display=t==='fixed'?'block':'none';
+  document.getElementById('bpd-wrap').style.display=t==='fixed'?'block':'none';
+  document.getElementById('bint-wrap').style.display=t==='rolling'?'block':'none';
+}
 function saveBill(id){
   var n=document.getElementById('bn').value.trim();
   var a=parseFloat(document.getElementById('ba').value);
-  var pd=parseFloat(document.getElementById('bpd').value);
-  var d=parseInt(document.getElementById('bd').value,10);
+  var type=document.getElementById('btype').value;
   var note=document.getElementById('bnote').value.trim();
   if(!n){document.getElementById('bn').style.borderColor='var(--bad)';return}
   if(isNaN(a)||a<0){document.getElementById('ba').style.borderColor='var(--bad)';return}
-  if(isNaN(pd)||pd<0)pd=0;
-  if(isNaN(d)||d<1||d>31){document.getElementById('bd').style.borderColor='var(--bad)';return}
-  if(id){var b=S.bills.find(function(x){return x.id===id});b.n=n;b.a=a;b.pastDue=pd;b.day=d;b.note=note}
-  else{S.bills.push({id:'b'+Date.now(),n:n,a:a,pastDue:pd,day:d,note:note})}
+  var patch={n:n,a:a,billingType:type,note:note};
+  if(type==='fixed'){
+    var pd=parseFloat(document.getElementById('bpd').value);if(isNaN(pd)||pd<0)pd=0;
+    var d=parseInt(document.getElementById('bd').value,10);
+    if(isNaN(d)||d<1||d>31){document.getElementById('bd').style.borderColor='var(--bad)';return}
+    patch.pastDue=pd;patch.day=d;
+  }else{
+    var iv=parseInt(document.getElementById('bint').value,10);
+    if(isNaN(iv)||iv<1){document.getElementById('bint').style.borderColor='var(--bad)';return}
+    patch.intervalDays=iv;patch.pastDue=0;
+  }
+  if(id){var b=S.bills.find(function(x){return x.id===id});Object.assign(b,patch)}
+  else{patch.id='b'+Date.now();if(type==='rolling')patch.lastPaid=null;S.bills.push(patch)}
   save();closeSheet();render();
 }
 function delBill(id){S.bills=S.bills.filter(function(x){return x.id!==id});save();closeSheet();render()}
@@ -837,6 +891,19 @@ function delBill(id){S.bills=S.bills.filter(function(x){return x.id!==id});save(
 function openPayBill(billId){
   var b=S.bills.find(function(x){return x.id===billId});
   if(!b)return;
+  if(b.billingType==='rolling'){
+    var due=nextDueRolling(b);
+    sheet('<div class="sh-t">Log a payment</div><div class="sh-s">'+esc(b.n)+' — '+money2(b.a)+
+      (b.lastPaid?'. Currently good through '+ordinal(due.getDate())+'.':' — not paid yet.')+
+      ' Paying it resets the clock from today, roughly '+(b.intervalDays||30)+' days out.</div>'+
+      '<div class="field"><label class="f">Amount</label><input id="pbAmt" type="number" inputmode="decimal" value="'+b.a.toFixed(2)+'"></div>'+
+      '<div class="field"><label class="f">Date</label><input id="pbDate" type="date" value="'+iso(today())+'"></div>'+
+      '<div id="pbErr" class="warnbox" style="display:none">Enter an amount greater than $0 before saving.</div>'+
+      '<button class="btn go" style="margin-top:14px" onclick="savePayBill(\''+billId+'\')">Log it</button>'+
+      '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+    setTimeout(function(){var e=document.getElementById('pbAmt');if(e){e.focus();e.select&&e.select()}},220);
+    return;
+  }
   var already=billPaidThisCycle(b,today());
   var rem=billRemaining(b,today());
   var pd=b.pastDue||0;
@@ -862,6 +929,14 @@ function savePayBill(billId){
     return;
   }
   var dObj=new Date(dt+'T00:00:00');
+  if(b && b.billingType==='rolling'){
+    // rolling bills (Hulu-style): the payment date IS the new due-date anchor
+    b.lastPaid=dt;
+    S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b.n,amount:amt});
+    save();closeSheet();render();
+    toast('Logged '+money2(amt)+' to '+b.n+' — renews '+ordinal(addDays(dt,b.intervalDays||30).getDate()));
+    return;
+  }
   var left=amt;
   // pay down past due first, same order a real company applies a payment
   if(b && b.pastDue>0){
@@ -933,6 +1008,18 @@ function delContributor(billId,contribId){
 
 function resetBillCycle(billId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  if(b.billingType==='rolling'){
+    var isPaidR=billIsPaid(b,today());
+    if(isPaidR){
+      // undo: restore whatever the due date was before this "mark paid"
+      b.lastPaid=b._lastPaidSnapshot!==undefined?b._lastPaidSnapshot:null;
+      delete b._lastPaidSnapshot;
+    }else{
+      b._lastPaidSnapshot=b.lastPaid||null;
+      b.lastPaid=iso(today());
+    }
+    save();render();return;
+  }
   var key=billKey(billId,today());
   var isPaid=billIsPaid(b,today());
   if(isPaid){
@@ -1222,10 +1309,13 @@ function openContactView(id){
 function openLog(presetDate){
   var k = presetDate || iso(today());
   var v=S.daily[k];
+  var isRest=!!S.restDays[k];
   sheet('<div class="sh-t">Log a day</div><div class="sh-s">Only actual driving/gig income — never a bill or rent payment.</div>'+
     '<div class="field"><label class="f">Which day</label><input id="logday" type="date" value="'+k+'" max="'+iso(today())+'" onchange="fillLogAmt()"></div>'+
     '<div class="field"><label class="f">Amount cleared after gas</label>'+
     '<input id="amt" type="number" inputmode="decimal" placeholder="100" value="'+(v!==undefined?v:'')+'"></div>'+
+    '<div class="chk'+(isRest?' on':'')+'" id="restToggle" style="margin-top:4px" onclick="var t=this;t.classList.toggle(\'on\')">'+
+    '<div class="box">'+(isRest?'✓':'')+'</div><span class="nm" style="font-size:14px">This was a rest day, not a miss</span></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveLog()">Save</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
   setTimeout(function(){var e=document.getElementById('amt');if(e)e.focus()},220);
@@ -1234,8 +1324,14 @@ function fillLogAmt(){var k=document.getElementById('logday').value;document.get
 function saveLog(){
   var k=document.getElementById('logday').value;
   var e=document.getElementById('amt'),n=parseFloat(e.value);
-  if(isNaN(n)||n<0){e.style.borderColor='var(--bad)';return}
+  var restOn=document.getElementById('restToggle').classList.contains('on');
+  if(isNaN(n)){ // allow blank amount if it's just being marked as a rest day
+    if(restOn){n=S.daily[k]!==undefined?S.daily[k]:0}
+    else{e.style.borderColor='var(--bad)';return}
+  }
+  if(n<0){e.style.borderColor='var(--bad)';return}
   S.daily[k]=n;
+  if(restOn)S.restDays[k]=true; else delete S.restDays[k];
   save();closeSheet();render();
 }
 
@@ -1491,7 +1587,7 @@ function applyImport(raw){
   S=Object.assign({},DEF,d);
   S.settings=Object.assign({},DEF.settings,S.settings||{});
   if(!S.bills)S.bills=DEF.bills;
-  S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0});
+  S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0;if(!b.contributors)b.contributors=[];if(!b.billingType)b.billingType='fixed'});
   if(!S.income)S.income=DEF.income;
   if(!S.extras)S.extras=DEF.extras;
   if(!S.goals)S.goals=DEF.goals;
@@ -1528,10 +1624,12 @@ function openTreeDetail(){
   var goalsTxt = S.goals.length ? S.goals.map(function(g){var p=g.target?Math.round(g.current/g.target*100):0;return esc(g.n)+' '+p+'%'}).join(' · ') : 'no goals set';
 
   var leafRows='';
-  for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var v=S.daily[iso(d)];
+  for(var i=0;i<14;i++){var d=new Date();d.setDate(d.getDate()-i);var k=iso(d);var v=S.daily[k];var isRest=!!S.restDays[k];
     leafRows+='<div class="log-row"><span>'+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</span>'+
-      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
-      (v===undefined?'not logged':v>=100?money(v)+' — cleared it':money(v)+' — under $100')+'</b></div>'}
+      (isRest
+        ? '<b style="color:var(--tx2)">rest day'+(v?' · '+money(v):'')+'</b>'
+        : '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
+          (v===undefined?'not logged':v>=100?money(v)+' — cleared it':money(v)+' — under $100')+'</b>')+'</div>'}
 
   var weekRows=weeks.map(function(w){
     return '<div class="log-row"><span>Week of '+w.label+'</span><b style="color:'+
