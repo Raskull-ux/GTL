@@ -147,10 +147,12 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
   <div id="projBanner"></div>
   <div id="survivalCard"></div>
 
+  <div id="backupNag"></div>
   <div class="btnrow" style="margin-top:14px">
     <button class="btn go" onclick="openLog()">Log earnings</button>
-    <button class="btn" onclick="go('score')">Score an order</button>
+    <button class="btn" onclick="go('score')">Check an order</button>
   </div>
+  <button class="btn" style="margin-top:8px" id="restTodayBtn" onclick="toggleRestToday()">Taking today off</button>
 
   <h2>Due this week</h2>
   <div id="weekSlice"></div>
@@ -160,8 +162,19 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
 </section>
 
 <section id="v-score" class="hide">
-  <h2>Score an order</h2>
+  <h2>Take it?</h2>
   <div class="card">
+    <div class="chips" id="modeChips" style="margin:0 0 10px"></div>
+    <div class="field"><label class="f">Order miles (what the app shows)</label>
+      <input id="qMi" type="number" inputmode="decimal" placeholder="6.2" oninput="runQuick()"></div>
+    <div class="field" id="qPayWrap"><label class="f">Pay shown (leave blank on Earn by Time)</label>
+      <input id="qPay" type="number" inputmode="decimal" placeholder="" oninput="runQuick()"></div>
+  </div>
+  <div id="quickOut"></div>
+  <div class="tiny" id="ruleLine"></div>
+
+  <details style="margin-top:22px"><summary class="mt" style="cursor:pointer;font-size:14px">Detailed score: pay per mile, per hour, territory</summary>
+  <div class="card" style="margin-top:10px">
     <div class="field"><label class="f">Pay</label>
       <input id="scPay" type="number" inputmode="decimal" placeholder="34.67" oninput="runScore()"></div>
     <div class="field"><label class="f">Total miles</label>
@@ -185,6 +198,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
   <h2>Recent trips</h2>
   <div id="tripList"></div>
   <div class="tiny">Tap a trip to fix or delete it.</div>
+  </details>
 </section>
 
 <section id="v-money" class="hide">
@@ -199,7 +213,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
   <button class="btn" onclick="openBill(null)">+ Add a bill</button>
 
   <h2>Money coming in</h2>
-  <div class="card" id="inCard"></div>
+  <div id="inCard"></div>
   <button class="btn" style="margin-top:10px" onclick="openIncome(null)">+ Add income source</button>
 
   <h2>Other things owed</h2>
@@ -245,7 +259,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
 </section>
 
 <section id="v-hist" class="hide">
-  <h2>Last 14 days</h2>
+  <h2>Every day logged</h2>
   <div class="card" id="histList"></div>
 
   <h2>Totals</h2>
@@ -254,6 +268,16 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
   <h2>Which days earn</h2>
   <div class="card" id="dowCard"></div>
   <div class="tiny">Averages from every day you've logged. Use it to plan a week.</div>
+
+  <h2>By app</h2>
+  <div class="card" id="appCard"></div>
+
+  <h2>Money that came in</h2>
+  <div class="card" id="rcHistCard"></div>
+
+  <h2>Every payment</h2>
+  <div class="card" id="payHistCard"></div>
+  <div class="tiny">Rent, landlord, bills, people who chipped in, and corrections. Tap any entry to see what it changed or delete it.</div>
 
   <h2>Week close-out</h2>
   <button class="btn" onclick="openCloseOut()">Open this week's close-out</button>
@@ -267,6 +291,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
       <button class="btn sm" onclick="openImport()">Restore</button>
     </div>
     <div class="mt" id="lastBackup" style="margin-top:10px"></div>
+    <div class="mt" id="appVer" style="margin-top:4px"></div>
   </div>
 
   <div class="tiny">
@@ -276,7 +301,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
 
 <nav><div class="navin">
   <button class="tab on" data-v="home"><b>✦</b>Home</button>
-  <button class="tab" data-v="score"><b>◎</b>Score</button>
+  <button class="tab" data-v="score"><b>◎</b>Orders</button>
   <button class="tab" data-v="money"><b>◆</b>Money</button>
   <button class="tab" data-v="dcf"><b>◈</b>DCF</button>
   <button class="tab" data-v="hist"><b>◍</b>History</button>
@@ -285,6 +310,7 @@ max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:
 <div id="sheet"></div>
 
 <script>
+var APP_VERSION='2026.10.05b';
 /* ---------- storage ---------- */
 var mem={},saveBroken=false;
 function load(){try{var r=localStorage.getItem('gtl2');return r?JSON.parse(r):null}catch(e){return mem.d||null}}
@@ -303,6 +329,8 @@ function escAttr(s){return String(s==null?'':s)
 var DEF={
   daily:{},
   restDays:{},
+  dailySplit:{},
+  received:[],
   arrears:2200, paidArrears:0,
   carReserve:0,
   billPaidAmt:{},      // 'billid-YYYY-MM': dollars paid toward that bill this cycle
@@ -317,7 +345,8 @@ var DEF={
     {id:'subs', n:'Spotify · Claude · Apple',a:43,day:1,note:'', pastDue:0}
   ],
   income:[
-    {id:'cash',n:'Cash assistance',a:375,note:'Lands 4th and 19th, x2/month'}
+    {id:'cash',n:'Cash assistance',a:375,days:[4,19],note:''},
+    {id:'snap',n:'Food stamps (SNAP)',a:540,days:[],foodOnly:true,note:''}
   ],
   extras:[
     {id:'ever82',n:'Eversource shortfall',a:82,note:'Separate from rent — a prior payment gap',done:false}
@@ -346,15 +375,18 @@ var DEF={
   otherIncome:[],
   trips:[],
   seen:{},
-  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,perMile:1.20,perHour:20}
+  settings:{floor:600,rent:875,rentDay:10,weeklyArr:250,perMile:1.20,perHour:20,maxMiles:10,longMin:30,payMode:'time'}
 };
-var S=Object.assign({},DEF,load()||{});
+var S=Object.assign({},JSON.parse(JSON.stringify(DEF)),load()||{});
 S.settings=Object.assign({},DEF.settings,S.settings||{});
 if(!S.bills)S.bills=DEF.bills;
 S.bills.forEach(function(b){if(b.pastDue===undefined)b.pastDue=0;if(!b.contributors)b.contributors=[];if(!b.billingType)b.billingType='fixed'});
 if(!S.contribApplied)S.contribApplied={};
 if(!S.restDays)S.restDays={};
+if(!S.dailySplit)S.dailySplit={};
+if(!S.received)S.received=[];
 if(!S.income)S.income=DEF.income;
+migrateIncome();
 if(!S.seen)S.seen={};
 if(!S.seen.contribMigrated){
   var oldBro=S.income.find(function(i){return i.id==='bro'});
@@ -374,6 +406,7 @@ if(!S.seen)S.seen={};
 if(!S.rentPaidAmt)S.rentPaidAmt={};
 if(!S.billPaidAmt)S.billPaidAmt={};
 S.trips.forEach(function(x,i){if(!x.id)x.id='legacy'+i+'-'+Date.now()});
+migrateLedger();
 
 /* ---------- constants ---------- */
 function FLOOR(){return S.settings.floor}
@@ -454,7 +487,7 @@ function pastWeeksFloorHits(n){
   }
   return out.reverse();
 }
-function monthlyIncome(){var s=0;S.income.forEach(function(i){s += /assistance/i.test(i.n) ? i.a*2 : i.a});return s}
+function monthlyIncome(){return incomeMonth().coming}
 function otherIncomeThisMonth(){var k=mKey(today()),s=0;S.otherIncome.forEach(function(o){if(o.date&&o.date.slice(0,7)===k)s+=o.amount});return s}
 function monthSurvival(){
   var t=today(),k=mKey(t);
@@ -464,9 +497,9 @@ function monthSurvival(){
   var arrearsLeft=Math.max(0,S.arrears-S.paidArrears);
   var extrasLeft=0;S.extras.forEach(function(x){if(!x.done)extrasLeft+=x.a});
   var owed=billsTotal+rentLeft+arrearsLeft+extrasLeft;
-  var other=otherIncomeThisMonth();
-  var income=monthlyIncome()+other;
-  return{owed:owed,income:income,other:other,gap:Math.max(0,owed-income),
+  var im=incomeMonth(), other=otherIncomeThisMonth();
+  var income=im.coming;
+  return{owed:owed,income:income,other:other,inHand:im.got+other,food:im.food,gap:Math.max(0,owed-income),
     bills:billsTotal,rent:rentLeft,arrears:arrearsLeft,extras:extrasLeft};
 }
 function weekSlice(){
@@ -596,9 +629,10 @@ function render(){
   document.getElementById('survivalCard').innerHTML=
     '<div class="card" style="margin-top:14px">'+
     '<div class="row"><div><div class="nm">'+monthName+' still to cover</div>'+
-    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' coming in'+(ms.other>0?' (incl. '+money(ms.other)+' other)':'')+'</div></div>'+
+    '<div class="mt">'+money(ms.owed)+' owed · '+money(ms.income)+' still coming in</div></div>'+
     '<div class="amt" style="color:'+(ms.gap>0?'var(--warn)':'var(--grow)')+'">'+money(ms.gap)+'</div></div>'+
-    '<div class="mt" style="margin-top:8px">This is what has to come from driving this month.</div>'+
+    '<div class="mt" style="margin-top:8px">This is what has to come from driving this month'+(ms.inHand>0?', minus whatever you still have from the '+money(ms.inHand)+' already received and not spent yet':'')+'.</div>'+
+    (ms.food>0?'<div class="mt" style="margin-top:4px">Food benefits this month: '+money(ms.food)+' (food only, not counted toward bills).</div>':'')+
     '<div class="btnrow"><button class="btn sm" onclick="openOtherIncome()">Log other income</button></div>'+
     '</div>';
 
@@ -649,13 +683,13 @@ function render(){
     '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent<span class="pill p-grn">Paid in full</span></div>'+
     '<div class="mt">'+money(rentPaidSoFar)+' paid toward '+money(RENT())+'. Resets next month.</div></div>'+
     '<div class="amt">$0</div></div>'+
-    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log another payment</button><button class="btn sm" onclick="resetRentMonth()">Reset this month</button></div>'
+    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log another payment</button><button class="btn sm" onclick="openRentHistory()">History</button></div>'
     :
     '<div class="row"><div><div class="nm">'+t.toLocaleDateString('en-US',{month:'long'})+' rent'+(dR<=7?'<span class="pill p-red">'+dR+'d</span>':'')+
     '</div><div class="mt">'+(rentPaidSoFar>0?money(rentPaidSoFar)+' paid so far · ':'')+'Late fee after the '+ordinal(S.settings.rentDay)+'.</div></div>'+
     '<div class="amt">'+money(rentRemaining)+'</div></div>'+
     (rentPaidSoFar>0?'<div class="mini"><i style="width:'+Math.min(100,rentPaidSoFar/RENT()*100)+'%"></i></div>':'')+
-    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log a payment</button></div>';
+    '<div class="btnrow"><button class="btn sm" onclick="payRent()">Log a payment</button><button class="btn sm" onclick="openRentHistory()">History</button></div>';
 
   var rem=Math.max(0,S.arrears-S.paidArrears);
   var apct=S.arrears?Math.min(100,S.paidArrears/S.arrears*100):0;
@@ -666,6 +700,7 @@ function render(){
     '<div class="amt">'+money(rem)+'</div></div>'+
     '<div class="mini"><i style="width:'+apct+'%"></i></div>'+
     '<div class="btnrow"><button class="btn sm" onclick="payArr()">Log a payment</button>'+
+    '<button class="btn sm" onclick="openArrHistory()">History</button>'+
     '<button class="btn sm" onclick="setArr()">Set balance</button></div>';
 
   // BILLS — now with real remaining balance, this is the actual bug fix
@@ -701,11 +736,9 @@ function render(){
       (isPaid?'Undo':'Mark paid')+'</button>'+
       '<button class="btn sm" onclick="event.stopPropagation();openContributor(\''+b.id+'\',null)">+ Person</button></div></div>'}).join('');
 
-  document.getElementById('inCard').innerHTML=S.income.map(function(inc){
-    return '<div class="row" onclick="openIncome(\''+inc.id+'\')"><div><div class="nm">'+esc(inc.n)+
-      '</div><div class="mt">'+esc(inc.note||'')+'</div></div><div class="amt">'+money2(inc.a)+'</div></div>'}).join('')+
-    '<div class="row" style="opacity:.55"><div><div class="nm">Driving floor</div>'+
-    '<div class="mt">Your target, not tracked income — $100/day, Wed–Sun minimum</div></div><div class="amt">'+money(FLOOR())+'/wk</div></div>';
+  document.getElementById('inCard').innerHTML=S.income.map(incomeCardHtml).join('')+
+    '<div class="card" style="opacity:.6"><div class="row"><div><div class="nm">Driving floor</div>'+
+    '<div class="mt">Your target, not tracked income</div></div><div class="amt">'+money(FLOOR())+'/wk</div></div></div>';
 
   document.getElementById('extraList').innerHTML=(S.extras.length?S.extras.map(function(x){
     return '<div class="card'+(x.done?' done':'')+'"><div class="row" onclick="openExtra(\''+x.id+'\')"><div>'+
@@ -774,10 +807,16 @@ function render(){
       (isRest
         ? '<b style="color:var(--tx2)">Rest day'+(v?' · '+money(v):'')+'</b>'
         : '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+
-          (v===undefined?'— tap to add':money(v))+'</b>')+'</div>';
+          (v===undefined?'— tap to add':money(v))+'</b>')+'</div>'+
+      (splitLine(k2)?'<div class="mt" style="margin:-6px 0 6px;font-size:12px">'+splitLine(k2)+'</div>':'');
     cursor.setDate(cursor.getDate()-1); guard++;
   }
   document.getElementById('histList').innerHTML=rows;
+  document.getElementById('payHistCard').innerHTML=payList(S.payments,'No payments logged yet.');
+  renderAppCard();renderBackupNag();runQuick();
+  var rh=document.getElementById('rcHistCard');if(rh)rh.innerHTML=receivedList();
+  var av=document.getElementById('appVer');if(av)av.textContent='App version '+APP_VERSION;
+  var rb=document.getElementById('restTodayBtn');if(rb)rb.textContent=S.restDays[iso(today())]?'Resting today ✓ (tap to undo)':'Taking today off';
 
   var all=Object.keys(S.daily),sum=0;all.forEach(function(k){sum+=S.daily[k]});
   var c14=last14();
@@ -854,7 +893,8 @@ function openBill(id){
     '<div class="field"><label class="f">Note (optional)</label><input id="bnote" placeholder="e.g. on a payment plan" value="'+esc(b?(b.note||''):'')+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveBill(\''+(id||'')+'\')">Save</button>'+
     (b?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delBill(\''+id+'\')">Delete this bill</button>':'')+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>'+
+    (b?billHistoryHtml(b.id):''));
 }
 function toggleBillTypeFields(){
   var t=document.getElementById('btype').value;
@@ -929,56 +969,50 @@ function savePayBill(billId){
     return;
   }
   var dObj=new Date(dt+'T00:00:00');
+  amt=r2(amt);
   if(b && b.billingType==='rolling'){
     // rolling bills (Hulu-style): the payment date IS the new due-date anchor
+    var prev=b.lastPaid||null;
     b.lastPaid=dt;
-    S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b.n,amount:amt});
+    ledgerAdd({kind:'bill',billId:billId,date:dt,amount:amt,label:b.n,applied:{mode:'rolling',prevLastPaid:prev}});
     save();closeSheet();render();
     toast('Logged '+money2(amt)+' to '+b.n+' — renews '+ordinal(addDays(dt,b.intervalDays||30).getDate()));
     return;
   }
-  var left=amt;
-  // pay down past due first, same order a real company applies a payment
-  if(b && b.pastDue>0){
-    var toPastDue=Math.min(left,b.pastDue);
-    b.pastDue-=toPastDue;
-    left-=toPastDue;
-  }
-  if(left>0){
-    var key=billKey(billId,dObj);
-    S.billPaidAmt[key]=(S.billPaidAmt[key]||0)+left;
-  }
-  S.payments.push({id:'p'+Date.now(),date:dt,billId:billId,label:b?b.n:'Bill',amount:amt});
+  if(!b)return;
+  var applied=applyToFixedBill(b,amt,billKey(billId,dObj));
+  ledgerAdd({kind:'bill',billId:billId,date:dt,amount:amt,label:b.n,applied:applied});
   save();closeSheet();render();
-  var totalAfter=b?billTotalOwed(b,dObj):0;
-  toast('Logged '+money2(amt)+' to '+(b?b.n:'bill')+' — '+(totalAfter<=0?'paid in full':money2(totalAfter)+' left total'));
+  var totalAfter=billTotalOwed(b,dObj);
+  toast('Logged '+money2(amt)+' to '+b.n+' — '+(totalAfter<=0?'paid in full':money2(totalAfter)+' left total'));
 }
-/* quick toggle: force this cycle to fully paid, or undo back to zero paid */
 /* ---------- bill contributors: other people who cover part of a bill ---------- */
 function contribKey(billId,contribId,d){return contribId+'-'+billKey(billId,d)}
 function toggleContributor(billId,contribId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
   var c=b.contributors.find(function(x){return x.id===contribId});if(!c)return;
   var key=contribKey(billId,contribId,today());
-  if(S.contribApplied[key]){
-    // undo: give back exactly what was applied, wherever it went
-    var applied=S.contribApplied[key];
-    b.pastDue=(b.pastDue||0)+applied.toPastDue;
-    var bk=billKey(billId,today());
-    S.billPaidAmt[bk]=(S.billPaidAmt[bk]||0)-applied.toCurrent;
-    delete S.contribApplied[key];
-  }else{
-    // apply now: same past-due-first rule as any other payment
-    var amt=c.amount||0;
-    if(amt<=0){save();render();return}
-    var left=amt, toPastDue=0;
-    if(b.pastDue>0){toPastDue=Math.min(left,b.pastDue);b.pastDue-=toPastDue;left-=toPastDue}
-    var bk2=billKey(billId,today());
-    if(left>0){S.billPaidAmt[bk2]=(S.billPaidAmt[bk2]||0)+left}
-    S.contribApplied[key]={toPastDue:toPastDue,toCurrent:left};
-    S.payments.push({id:'p'+Date.now(),date:iso(today()),billId:billId,label:b.n+' — '+c.n,amount:amt});
+  var rec=S.contribApplied[key];
+  if(rec){
+    var entry=rec.payId?S.payments.find(function(p){return p.id===rec.payId}):null;
+    if(entry){deleteEntry(entry.id)}
+    else{ // older toggle from before the ledger: reverse it the old way
+      b.pastDue=r2((b.pastDue||0)+rec.toPastDue);
+      var bk=billKey(billId,today());
+      S.billPaidAmt[bk]=r2((S.billPaidAmt[bk]||0)-rec.toCurrent);
+      delete S.contribApplied[key];
+    }
+    save();render();toast(c.n+' unchecked — '+money2(billTotalOwed(b,today()))+' owed on '+b.n);
+    return;
   }
+  var amt=r2(c.amount||0);
+  if(amt<=0){toast('Set '+c.n+'\'s share first (tap Edit)');return}
+  var applied=applyToFixedBill(b,amt,billKey(billId,today()));
+  applied.ckey=key;
+  var e=ledgerAdd({kind:'contrib',billId:billId,date:iso(today()),amount:amt,label:b.n+' · '+c.n+' paid',applied:applied});
+  S.contribApplied[key]={toPastDue:applied.toPastDue,toCurrent:applied.toCurrent,payId:e.id};
   save();render();
+  toast(c.n+' paid '+money2(amt)+' — '+money2(billTotalOwed(b,today()))+' left on '+b.n);
 }
 function openContributor(billId,contribId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
@@ -1008,31 +1042,22 @@ function delContributor(billId,contribId){
 
 function resetBillCycle(billId){
   var b=S.bills.find(function(x){return x.id===billId});if(!b)return;
+  var t=today();
+  if(billIsPaid(b,t)){
+    // Undo = delete the most recent entry for this bill, which reverses it exactly
+    var mine=S.payments.filter(function(p){return p.billId===billId&&p.applied}).sort(function(x,y){return x.date<y.date?1:x.date>y.date?-1:(x.id<y.id?1:-1)});
+    if(!mine.length){toast('No logged payment to undo — check the bill\'s history');return}
+    var msg=deleteEntry(mine[0].id);render();toast('Undid '+money2(mine[0].amount)+' — '+msg);return;
+  }
   if(b.billingType==='rolling'){
-    var isPaidR=billIsPaid(b,today());
-    if(isPaidR){
-      // undo: restore whatever the due date was before this "mark paid"
-      b.lastPaid=b._lastPaidSnapshot!==undefined?b._lastPaidSnapshot:null;
-      delete b._lastPaidSnapshot;
-    }else{
-      b._lastPaidSnapshot=b.lastPaid||null;
-      b.lastPaid=iso(today());
-    }
-    save();render();return;
+    var prev=b.lastPaid||null;b.lastPaid=iso(t);
+    ledgerAdd({kind:'bill',billId:billId,date:iso(t),amount:r2(b.a),label:b.n+' · marked paid',applied:{mode:'rolling',prevLastPaid:prev}});
+    save();render();toast(b.n+' marked paid — logged in history');return;
   }
-  var key=billKey(billId,today());
-  var isPaid=billIsPaid(b,today());
-  if(isPaid){
-    // undo: restore whatever past due existed before "mark paid" cleared it
-    S.billPaidAmt[key]=0;
-    b.pastDue = b._pastDueSnapshot!==undefined ? b._pastDueSnapshot : b.pastDue;
-    delete b._pastDueSnapshot;
-  }else{
-    b._pastDueSnapshot=b.pastDue||0;
-    S.billPaidAmt[key]=b.a;
-    b.pastDue=0;
-  }
-  save();render();
+  var owe=billTotalOwed(b,t);
+  var applied=applyToFixedBill(b,owe,billKey(billId,t));
+  ledgerAdd({kind:'bill',billId:billId,date:iso(t),amount:r2(owe),label:b.n+' · marked paid',applied:applied});
+  save();render();toast(b.n+' marked paid ('+money2(owe)+') — logged in history');
 }
 
 /* ---------- income / extras / needs / goals (unchanged from prior builds) ---------- */
@@ -1040,8 +1065,10 @@ function openIncome(id){
   var inc=id?S.income.find(function(x){return x.id===id}):null;
   sheet('<div class="sh-t">'+(inc?'Edit income source':'Add income source')+'</div><div class="sh-s">Anything that reliably comes in.</div>'+
     '<div class="field"><label class="f">Name</label><input id="in" placeholder="e.g. Cash assistance" value="'+esc(inc?inc.n:'')+'"></div>'+
-    '<div class="field"><label class="f">Amount</label><input id="ia" type="number" inputmode="decimal" placeholder="0" value="'+(inc?inc.a:'')+'"></div>'+
-    '<div class="field"><label class="f">Note (optional)</label><input id="inote" placeholder="e.g. lands on the 4th and 19th" value="'+esc(inc?(inc.note||''):'')+'"></div>'+
+    '<div class="field"><label class="f">Amount each time</label><input id="ia" type="number" inputmode="decimal" placeholder="0" value="'+(inc?inc.a:'')+'"></div>'+
+    '<div class="field"><label class="f">Days of the month it lands (blank = once a month, any day)</label><input id="idays" placeholder="e.g. 4, 19" value="'+(inc&&inc.days?inc.days.join(', '):'')+'"></div>'+
+    '<div class="chk'+(inc&&inc.foodOnly?' on':'')+'" id="ifood" onclick="this.classList.toggle(\'on\');this.querySelector(\'.box\').textContent=this.classList.contains(\'on\')?\'✓\':\'\'"><div class="box">'+(inc&&inc.foodOnly?'✓':'')+'</div><span class="nm" style="font-size:14px">Food only (SNAP/EBT), don\'t count it toward bills</span></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="inote" placeholder="" value="'+esc(inc?(inc.note||''):'')+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveIncome(\''+(id||'')+'\')">Save</button>'+
     (inc?'<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delIncome(\''+id+'\')">Delete this source</button>':'')+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
@@ -1052,11 +1079,13 @@ function saveIncome(id){
   var note=document.getElementById('inote').value.trim();
   if(!n){document.getElementById('in').style.borderColor='var(--bad)';return}
   if(isNaN(a)||a<0){document.getElementById('ia').style.borderColor='var(--bad)';return}
-  if(id){var inc=S.income.find(function(x){return x.id===id});inc.n=n;inc.a=a;inc.note=note}
-  else{S.income.push({id:'i'+Date.now(),n:n,a:a,note:note})}
+  var days=document.getElementById('idays').value.split(/[^0-9]+/).map(function(x){return parseInt(x,10)}).filter(function(x){return x>=1&&x<=31});
+  var food=document.getElementById('ifood').classList.contains('on');
+  if(id){var inc=S.income.find(function(x){return x.id===id});inc.n=n;inc.a=a;inc.note=note;inc.days=days;inc.foodOnly=food}
+  else{S.income.push({id:'i'+Date.now(),n:n,a:a,note:note,days:days,foodOnly:food})}
   save();closeSheet();render();
 }
-function delIncome(id){S.income=S.income.filter(function(x){return x.id!==id});save();closeSheet();render()}
+function delIncome(id){S.income=S.income.filter(function(x){return x.id!==id});S.received=S.received.filter(function(r){return r.srcId!==id});save();closeSheet();render()}
 
 function openExtra(id){
   var x=id?S.extras.find(function(e){return e.id===id}):null;
@@ -1152,48 +1181,209 @@ function saveGoal(id){
 }
 function delGoal(id){S.goals=S.goals.filter(function(x){return x.id!==id});save();closeSheet();render()}
 
-/* ---------- rent, arrears, settings, funds ---------- */
+/* ================= PAYMENT LEDGER =================
+   Every dollar that moves gets one entry in S.payments. Each entry stores exactly
+   what it changed (applied), so deleting it puts every number back exactly where it was.
+   No more numbers that change with no record of why. */
+function ledgerAdd(e){e.id='p'+Date.now()+''+Math.floor(Math.random()*1000);S.payments.push(e);return e}
+function r2(n){return Math.round(n*100)/100}
+function fmtDay(isoStr){return new Date(isoStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}
+function monthLabel(mk){var p=mk.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'})}
+function realPayments(){return S.payments.filter(function(p){return !p.adjust})}
+
+/* apply a payment to a fixed-date bill: past due first, then the cycle it's for */
+function applyToFixedBill(b,amt,cycleKey){
+  var left=amt,toPastDue=0;
+  if((b.pastDue||0)>0){toPastDue=Math.min(left,b.pastDue);b.pastDue=r2(b.pastDue-toPastDue);left=r2(left-toPastDue)}
+  if(left>0)S.billPaidAmt[cycleKey]=r2((S.billPaidAmt[cycleKey]||0)+left);
+  return {mode:'fixed',cycleKey:cycleKey,toPastDue:toPastDue,toCurrent:left};
+}
+
+/* undo exactly what one entry did. Returns a short description of what changed back. */
+function reverseEntry(p){
+  var a=p.applied;
+  if(!a)return 'removed from history only (this entry is from before full tracking, so its balance change can\'t be traced — check the balance)';
+  if(p.kind==='rent'){S.rentPaidAmt[a.month]=r2((S.rentPaidAmt[a.month]||0)-a.amt);return monthLabel(a.month)+' rent paid is now '+money2(S.rentPaidAmt[a.month])}
+  if(p.kind==='arrears'){S.paidArrears=r2(S.paidArrears-a.amt);return 'arrears paid is now '+money2(S.paidArrears)}
+  var b=S.bills.find(function(x){return x.id===p.billId});
+  if(!b)return 'removed from history (that bill no longer exists)';
+  if(a.mode==='rolling'){b.lastPaid=a.prevLastPaid||null;return b.n+' due date restored'}
+  b.pastDue=r2((b.pastDue||0)+(a.toPastDue||0));
+  S.billPaidAmt[a.cycleKey]=r2((S.billPaidAmt[a.cycleKey]||0)-(a.toCurrent||0));
+  if(p.kind==='contrib'&&a.ckey)delete S.contribApplied[a.ckey];
+  return b.n+' is back to '+money2(billTotalOwed(b,today()))+' owed';
+}
+function deleteEntry(id){
+  var p=S.payments.find(function(x){return x.id===id});if(!p)return null;
+  var msg=reverseEntry(p);
+  S.payments=S.payments.filter(function(x){return x.id!==id});
+  save();
+  return msg;
+}
+
+/* one row in any history list; tap opens the detail sheet */
+function payRow(p){
+  var amtTxt=(p.adjust&&p.amount>0?'+':'')+money2(p.amount);
+  return '<div class="log-row" style="cursor:pointer" onclick="openPayment(\''+p.id+'\')"><span>'+fmtDay(p.date)+
+    '<span class="mt" style="display:block;margin:2px 0 0">'+esc(p.label)+(p.note?' · '+esc(p.note):'')+'</span></span>'+
+    '<b style="font-weight:500;color:'+(p.adjust?'var(--warn)':'var(--tx)')+'">'+amtTxt+'</b></div>';
+}
+function payList(arr,empty){
+  if(!arr.length)return '<div class="mt">'+(empty||'Nothing logged yet.')+'</div>';
+  return arr.slice().sort(function(x,y){return x.date<y.date?1:x.date>y.date?-1:(x.id<y.id?1:-1)}).map(payRow).join('');
+}
+function describeApplied(p){
+  var a=p.applied;if(!a)return 'Logged before full tracking existed. Deleting it removes it from history but can\'t change any balance.';
+  if(p.kind==='rent')return (p.adjust?'Correction to ':'Counted toward ')+monthLabel(a.month)+' rent.';
+  if(p.kind==='arrears')return p.adjust?'Correction to the arrears paid total.':'Counted toward the landlord arrears balance.';
+  if(a.mode==='rolling')return 'Reset the due date from this payment.';
+  var parts=[];if(a.toPastDue>0)parts.push(money2(a.toPastDue)+' to past due');if(a.toCurrent>0)parts.push(money2(a.toCurrent)+' to that month\'s bill');
+  return parts.length?'Went to: '+parts.join(', ')+'.':'Nothing was owed when this was logged.';
+}
+function openPayment(id){
+  var p=S.payments.find(function(x){return x.id===id});if(!p)return;
+  sheet('<div class="sh-t">'+esc(p.label)+'</div><div class="sh-s">'+fmtDay(p.date)+' · '+money2(p.amount)+'</div>'+
+    '<div class="card"><div class="mt" style="margin:0">'+describeApplied(p)+(p.note?'<br>Note: '+esc(p.note):'')+'</div></div>'+
+    '<div class="tiny" style="margin-top:8px">Wrong amount or date? Delete it and log it again. Deleting puts every number back exactly how it was before this entry.</div>'+
+    '<button class="btn" style="margin-top:14px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="confirmDeletePayment(\''+id+'\')">Delete this entry</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+}
+function confirmDeletePayment(id){
+  var p=S.payments.find(function(x){return x.id===id});if(!p)return;
+  sheet('<div class="sh-t">Delete this entry?</div><div class="sh-s">'+esc(p.label)+' · '+money2(p.amount)+' on '+fmtDay(p.date)+'.</div>'+
+    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doDeletePayment(\''+id+'\')">Yes, delete it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="openPayment(\''+id+'\')">Keep it</button>');
+}
+function doDeletePayment(id){
+  var msg=deleteEntry(id);closeSheet();render();
+  toast(msg?'Deleted — '+msg:'Already gone');
+}
+
+/* ---------- rent ---------- */
 function payRent(){
-  sheet('<div class="sh-t">Log a rent payment</div><div class="sh-s">Add whatever you actually paid — partial or full.</div>'+
+  var mk=mKey(today());
+  sheet('<div class="sh-t">Log a rent payment</div><div class="sh-s">Partial or full. It shows up in rent history the second you save.</div>'+
     '<div class="field"><label class="f">Amount</label><input id="rpAmt" type="number" inputmode="decimal" placeholder="500"></div>'+
+    '<div class="field"><label class="f">Date you paid</label><input id="rpDate" type="date" value="'+iso(today())+'"></div>'+
+    '<div class="field"><label class="f">Which month\'s rent</label><input id="rpMonth" type="month" value="'+mk+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="rpNote" placeholder="e.g. Cash App, receipt saved"></div>'+
+    '<div id="rpErr" class="warnbox" style="display:none">Enter an amount greater than $0.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveRentPay()">Log payment</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
   setTimeout(function(){var e=document.getElementById('rpAmt');if(e)e.focus()},220);
 }
 function saveRentPay(){
   var e=document.getElementById('rpAmt'),n=parseFloat(e.value);
-  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
-  var k=mKey(today());
-  S.rentPaidAmt[k]=(S.rentPaidAmt[k]||0)+n;
+  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';document.getElementById('rpErr').style.display='block';return}
+  var dt=document.getElementById('rpDate').value||iso(today());
+  var mk=document.getElementById('rpMonth').value||mKey(today());
+  var note=document.getElementById('rpNote').value.trim();
+  n=r2(n);
+  S.rentPaidAmt[mk]=r2((S.rentPaidAmt[mk]||0)+n);
+  ledgerAdd({kind:'rent',date:dt,amount:n,label:'Rent · '+monthLabel(mk),note:note,applied:{month:mk,amt:n}});
   save();closeSheet();render();
+  var left=Math.max(0,RENT()-S.rentPaidAmt[mk]);
+  toast('Logged '+money2(n)+' to '+monthLabel(mk)+' rent — '+(left<=0?'paid in full':money2(left)+' left'));
 }
-function resetRentMonth(){
-  sheet('<div class="sh-t">Reset this month\'s rent?</div><div class="sh-s">Clears the amount logged as paid for '+today().toLocaleDateString('en-US',{month:'long'})+'.</div>'+
-    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doResetRent()">Reset it</button>'+
-    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+function openRentHistory(){
+  var mk=mKey(today()), paid=S.rentPaidAmt[mk]||0;
+  var thisMonth=S.payments.filter(function(p){return p.kind==='rent'&&p.applied&&p.applied.month===mk});
+  var older=S.payments.filter(function(p){return p.kind==='rent'&&!(p.applied&&p.applied.month===mk)});
+  sheet('<div class="sh-t">Rent history</div><div class="sh-s">'+monthLabel(mk)+': '+money2(paid)+' paid of '+money2(RENT())+'. Tap any entry to see it or delete it.</div>'+
+    '<h2 style="margin-top:4px">This month</h2>'+payList(thisMonth,'No rent payments logged for this month.')+
+    '<h2 style="margin-top:18px">Earlier months</h2>'+payList(older,'Nothing earlier.')+
+    '<button class="btn go" style="margin-top:16px" onclick="payRent()">Log a payment</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="openCorrect(\'rent\')">The total is wrong — correct it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
 }
-function doResetRent(){var k=mKey(today());S.rentPaidAmt[k]=0;save();closeSheet();render()}
 
+/* ---------- arrears ---------- */
 function payArr(){
-  sheet('<div class="sh-t">Payment to landlord</div><div class="sh-s">Log it here right after you send it. Screenshot the transfer.</div>'+
+  sheet('<div class="sh-t">Payment to landlord</div><div class="sh-s">Log it right after you send it. Screenshot the transfer.</div>'+
     '<div class="field"><label class="f">Amount</label><input id="pa" type="number" inputmode="decimal" placeholder="250"></div>'+
+    '<div class="field"><label class="f">Date you paid</label><input id="paDate" type="date" value="'+iso(today())+'"></div>'+
+    '<div class="field"><label class="f">Note (optional)</label><input id="paNote" placeholder="e.g. goodwill payment, Zelle"></div>'+
+    '<div id="paErr" class="warnbox" style="display:none">Enter an amount greater than $0.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="doPay()">Log payment</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+  setTimeout(function(){var e=document.getElementById('pa');if(e)e.focus()},220);
 }
-function doPay(){var e=document.getElementById('pa'),n=parseFloat(e.value);
-  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';return}
-  S.paidArrears+=n;save();closeSheet();render()}
+function doPay(){
+  var e=document.getElementById('pa'),n=parseFloat(e.value);
+  if(isNaN(n)||n<=0){e.style.borderColor='var(--bad)';document.getElementById('paErr').style.display='block';return}
+  n=r2(n);
+  var dt=document.getElementById('paDate').value||iso(today());
+  S.paidArrears=r2(S.paidArrears+n);
+  ledgerAdd({kind:'arrears',date:dt,amount:n,label:'Landlord arrears',note:document.getElementById('paNote').value.trim(),applied:{amt:n}});
+  save();closeSheet();render();
+  toast('Logged '+money2(n)+' to the landlord — '+money2(Math.max(0,S.arrears-S.paidArrears))+' left');
+}
+function openArrHistory(){
+  var list=S.payments.filter(function(p){return p.kind==='arrears'});
+  sheet('<div class="sh-t">Landlord payment history</div><div class="sh-s">'+money2(S.paidArrears)+' paid of '+money2(S.arrears)+'. Tap any entry to see it or delete it.</div>'+
+    payList(list,'No landlord payments logged yet.')+
+    '<button class="btn go" style="margin-top:16px" onclick="payArr()">Log a payment</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="openCorrect(\'arrears\')">The paid total is wrong — correct it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+}
 function setArr(){
-  sheet('<div class="sh-t">Set arrears balance</div><div class="sh-s">Use the number in the written agreement.</div>'+
+  sheet('<div class="sh-t">Set arrears balance</div><div class="sh-s">Total owed from the written agreement. What you\'ve paid comes from the payment history, so it can\'t silently change.</div>'+
     '<div class="field"><label class="f">Total owed</label><input id="sa" type="number" inputmode="decimal" value="'+S.arrears+'"></div>'+
-    '<div class="field"><label class="f">Already paid</label><input id="sp" type="number" inputmode="decimal" value="'+S.paidArrears+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="doSetArr()">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="openCorrect(\'arrears\')">Correct the paid total instead</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
 }
-function doSetArr(){var a=parseFloat(document.getElementById('sa').value),p=parseFloat(document.getElementById('sp').value);
+function doSetArr(){var a=parseFloat(document.getElementById('sa').value);
   if(isNaN(a)||a<0){document.getElementById('sa').style.borderColor='var(--bad)';return}
-  S.arrears=a;S.paidArrears=isNaN(p)?0:p;save();closeSheet();render()}
+  S.arrears=r2(a);save();closeSheet();render();toast('Total owed set to '+money2(a));
+}
 
+/* ---------- corrections: fixing a total always leaves a visible entry ---------- */
+function openCorrect(kind){
+  var mk=mKey(today());
+  var cur=kind==='rent'?(S.rentPaidAmt[mk]||0):S.paidArrears;
+  var what=kind==='rent'?monthLabel(mk)+' rent':'landlord arrears';
+  sheet('<div class="sh-t">Correct the total</div><div class="sh-s">Right now the app says '+money2(cur)+' paid toward '+what+'. Enter what you\'ve REALLY paid. This saves as a visible correction in history, so you can always see it and undo it.</div>'+
+    '<div class="field"><label class="f">Real amount paid toward '+what+'</label><input id="corAmt" type="number" inputmode="decimal" value="'+cur+'"></div>'+
+    '<div class="field"><label class="f">Why (optional)</label><input id="corNote" placeholder="e.g. typo, entered twice"></div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveCorrect(\''+kind+'\')">Save correction</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveCorrect(kind){
+  var e=document.getElementById('corAmt'),v=parseFloat(e.value);
+  if(isNaN(v)||v<0){e.style.borderColor='var(--bad)';return}
+  var mk=mKey(today()), note=document.getElementById('corNote').value.trim();
+  var cur=kind==='rent'?(S.rentPaidAmt[mk]||0):S.paidArrears, delta=r2(v-cur);
+  if(delta===0){closeSheet();toast('Already at '+money2(v)+' — nothing changed');return}
+  if(kind==='rent'){S.rentPaidAmt[mk]=r2(v);ledgerAdd({kind:'rent',adjust:true,date:iso(today()),amount:delta,label:'Correction · '+monthLabel(mk)+' rent',note:note,applied:{month:mk,amt:delta}})}
+  else{S.paidArrears=r2(v);ledgerAdd({kind:'arrears',adjust:true,date:iso(today()),amount:delta,label:'Correction · arrears paid',note:note,applied:{amt:delta}})}
+  save();closeSheet();render();
+  toast('Corrected to '+money2(v)+' — saved in history');
+}
+
+/* ---------- bill history (shown inside the bill's edit sheet) ---------- */
+function billHistoryHtml(billId){
+  var list=S.payments.filter(function(p){return p.billId===billId});
+  return '<h2 style="margin-top:18px">Payment history</h2>'+payList(list,'No payments logged for this bill yet.');
+}
+
+/* ---------- one-time migration: old totals become visible, deletable entries ---------- */
+function migrateLedger(){
+  if(S.seen.ledgerV2)return;
+  Object.keys(S.rentPaidAmt).forEach(function(mk){
+    var v=S.rentPaidAmt[mk]||0;if(!v)return;
+    S.payments.push({id:'pc-rent-'+mk,kind:'rent',date:mk+'-01',amount:r2(v),label:'Carried over · '+monthLabel(mk)+' rent',
+      note:'logged before history existed',applied:{month:mk,amt:r2(v)}});
+  });
+  if(S.paidArrears>0){
+    S.payments.push({id:'pc-arr',kind:'arrears',date:iso(today()),amount:r2(S.paidArrears),label:'Carried over · arrears paid',
+      note:'total from before history existed',applied:{amt:r2(S.paidArrears)}});
+  }
+  S.payments.forEach(function(p){if(!p.kind)p.kind=p.billId?'bill':'other'});
+  S.seen.ledgerV2=1;save();
+}
+
+/* ---------- settings, funds ---------- */
 function openSettings(){
   var s=S.settings;
   sheet('<div class="sh-t">Your targets</div><div class="sh-s">Update these the moment real life changes.</div>'+
@@ -1203,6 +1393,8 @@ function openSettings(){
     '<div class="field"><label class="f">Arrears payment per week</label><input id="sArr" type="number" inputmode="decimal" value="'+s.weeklyArr+'"></div>'+
     '<div class="field"><label class="f">Minimum $ per mile</label><input id="sPM" type="number" step="0.05" inputmode="decimal" value="'+s.perMile+'"></div>'+
     '<div class="field"><label class="f">Minimum $ per hour</label><input id="sPH" type="number" inputmode="decimal" value="'+s.perHour+'"></div>'+
+    '<div class="field"><label class="f">Order rule: longest order you\'ll take (miles)</label><input id="sMax" type="number" inputmode="decimal" value="'+s.maxMiles+'"></div>'+
+    '<div class="field"><label class="f">Order rule: past that distance, only if it pays at least</label><input id="sLong" type="number" inputmode="decimal" value="'+s.longMin+'"></div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveSettings()">Save</button>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
 }
@@ -1213,10 +1405,13 @@ function saveSettings(){
     rentDay:parseInt(document.getElementById('sRentDay').value,10),
     weeklyArr:parseFloat(document.getElementById('sArr').value),
     perMile:parseFloat(document.getElementById('sPM').value),
-    perHour:parseFloat(document.getElementById('sPH').value)
+    perHour:parseFloat(document.getElementById('sPH').value),
+    maxMiles:parseFloat(document.getElementById('sMax').value),
+    longMin:parseFloat(document.getElementById('sLong').value)
   };
-  for(var k in v){if(isNaN(v[k])){return}}
-  S.settings=v;save();closeSheet();render();
+  var ids={floor:'sFloor',rent:'sRent',rentDay:'sRentDay',weeklyArr:'sArr',perMile:'sPM',perHour:'sPH',maxMiles:'sMax',longMin:'sLong'};
+  for(var k in v){if(isNaN(v[k])||v[k]<0){document.getElementById(ids[k]).style.borderColor='var(--bad)';return}}
+  S.settings=Object.assign({},S.settings,v);save();closeSheet();render();toast('Targets saved');
 }
 
 function openFunds(){
@@ -1308,31 +1503,226 @@ function openContactView(id){
 /* ---------- daily log ---------- */
 function openLog(presetDate){
   var k = presetDate || iso(today());
-  var v=S.daily[k];
-  var isRest=!!S.restDays[k];
-  sheet('<div class="sh-t">Log a day</div><div class="sh-s">Only actual driving/gig income — never a bill or rent payment.</div>'+
+  sheet('<div class="sh-t">Log a day</div><div class="sh-s">What each app paid you that day. Driving and gig income only, never a bill or rent payment.</div>'+
     '<div class="field"><label class="f">Which day</label><input id="logday" type="date" value="'+k+'" max="'+iso(today())+'" onchange="fillLogAmt()"></div>'+
-    '<div class="field"><label class="f">Amount cleared after gas</label>'+
-    '<input id="amt" type="number" inputmode="decimal" placeholder="100" value="'+(v!==undefined?v:'')+'"></div>'+
-    '<div class="chk'+(isRest?' on':'')+'" id="restToggle" style="margin-top:4px" onclick="var t=this;t.classList.toggle(\'on\')">'+
-    '<div class="box">'+(isRest?'✓':'')+'</div><span class="nm" style="font-size:14px">This was a rest day, not a miss</span></div>'+
+    APPS.map(function(a){return '<div class="field"><label class="f">'+a[1]+'</label><input id="lg-'+a[0]+'" type="number" inputmode="decimal" placeholder="0" oninput="logTotalPreview()"></div>'}).join('')+
+    '<div class="card" style="margin-top:4px"><div class="row"><div class="nm">Day total</div><div class="amt" id="lgTotal">$0</div></div></div>'+
+    '<div class="chk" id="restToggle" style="margin-top:4px" onclick="toggleRestBox()">'+
+    '<div class="box"></div><span class="nm" style="font-size:14px">This was a rest day, not a miss</span></div>'+
+    '<div id="lgErr" class="warnbox" style="display:none">Enter at least one amount, or mark it as a rest day.</div>'+
     '<button class="btn go" style="margin-top:14px" onclick="saveLog()">Save</button>'+
+    '<div id="lgDelWrap"></div>'+
     '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
-  setTimeout(function(){var e=document.getElementById('amt');if(e)e.focus()},220);
+  fillLogAmt();
+  setTimeout(function(){var e=document.getElementById('lg-dd');if(e)e.focus()},220);
 }
-function fillLogAmt(){var k=document.getElementById('logday').value;document.getElementById('amt').value=S.daily[k]!==undefined?S.daily[k]:''}
+function toggleRestBox(){var t=document.getElementById('restToggle');t.classList.toggle('on');t.querySelector('.box').textContent=t.classList.contains('on')?'✓':''}
+function logTotalPreview(){
+  var t=0;APPS.forEach(function(a){var v=parseFloat(document.getElementById('lg-'+a[0]).value);if(!isNaN(v))t+=v});
+  document.getElementById('lgTotal').textContent=money2(t);
+}
+function fillLogAmt(){
+  var k=document.getElementById('logday').value, sp=S.dailySplit[k], v=S.daily[k];
+  APPS.forEach(function(a){
+    var val='';
+    if(sp&&sp[a[0]]!==undefined)val=sp[a[0]];
+    else if(!sp&&v!==undefined&&a[0]==='other'&&v>0)val=v; // older day logged as one total
+    document.getElementById('lg-'+a[0]).value=val;
+  });
+  var rt=document.getElementById('restToggle'),on=!!S.restDays[k];
+  rt.classList.toggle('on',on);rt.querySelector('.box').textContent=on?'✓':'';
+  document.getElementById('lgDelWrap').innerHTML=(v!==undefined||on)?
+    '<button class="btn sm" style="margin-top:10px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delDay(\''+k+'\')">Delete this day entirely</button>':'';
+  logTotalPreview();
+}
 function saveLog(){
-  var k=document.getElementById('logday').value;
-  var e=document.getElementById('amt'),n=parseFloat(e.value);
+  var k=document.getElementById('logday').value||iso(today());
   var restOn=document.getElementById('restToggle').classList.contains('on');
-  if(isNaN(n)){ // allow blank amount if it's just being marked as a rest day
-    if(restOn){n=S.daily[k]!==undefined?S.daily[k]:0}
-    else{e.style.borderColor='var(--bad)';return}
-  }
-  if(n<0){e.style.borderColor='var(--bad)';return}
-  S.daily[k]=n;
-  if(restOn)S.restDays[k]=true; else delete S.restDays[k];
+  var sp={},any=false,total=0,bad=false;
+  APPS.forEach(function(a){var el=document.getElementById('lg-'+a[0]);var raw=el.value.trim();if(raw==='')return;
+    var v=parseFloat(raw);if(isNaN(v)||v<0){el.style.borderColor='var(--bad)';bad=true;return}
+    any=true;if(v>0)sp[a[0]]=Math.round(v*100)/100;total+=v});
+  if(bad)return;
+  if(!any&&!restOn){document.getElementById('lgErr').style.display='block';return}
+  total=Math.round(total*100)/100;
+  S.daily[k]=total;
+  if(Object.keys(sp).length)S.dailySplit[k]=sp;else delete S.dailySplit[k];
+  if(restOn)S.restDays[k]=true;else delete S.restDays[k];
   save();closeSheet();render();
+  toast(restOn&&!total?'Rest day saved':'Saved '+money2(total)+' for '+new Date(k+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
+}
+function delDay(k){
+  sheet('<div class="sh-t">Delete this day?</div><div class="sh-s">Removes '+new Date(k+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})+
+    (S.daily[k]!==undefined?' ('+money2(S.daily[k])+')':'')+' from your log, like it was never entered.</div>'+
+    '<button class="btn" style="margin-top:14px;background:var(--bad);border-color:var(--bad);color:#fff" onclick="doDelDay(\''+k+'\')">Yes, delete it</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="openLog(\''+k+'\')">Keep it</button>');
+}
+function doDelDay(k){delete S.daily[k];delete S.dailySplit[k];delete S.restDays[k];save();closeSheet();render();toast('Day deleted')}
+
+
+/* ---------- income that actually lands: expected dates, mark received, history ---------- */
+function pad2(n){return String(n).padStart(2,'0')}
+function incomeSlots(inc,d){
+  d=d||today();var y=d.getFullYear(),m=d.getMonth(),mk=mKey(d),last=new Date(y,m+1,0).getDate();
+  if(!inc.days||!inc.days.length)return[{key:mk,exp:null,day:null}];
+  return inc.days.slice().sort(function(a,b){return a-b}).map(function(day){
+    var dd=Math.min(day,last),e=new Date(y,m,dd);
+    var moved=false;if(e.getDay()===0){e.setDate(e.getDate()-1);moved=true} // no deposits on Sunday: lands Saturday
+    return{key:mk+'-'+pad2(dd),exp:e,day:day,moved:moved};
+  });
+}
+function receivedFor(inc,key){return S.received.find(function(r){return r.srcId===inc.id&&r.slot===key})}
+function incomeMonth(){
+  var coming=0,got=0,food=0;
+  S.income.forEach(function(inc){incomeSlots(inc).forEach(function(s){
+    var r=receivedFor(inc,s.key);
+    if(inc.foodOnly){if(r)food+=r.amount;return}
+    if(r)got+=r.amount;else coming+=inc.a;
+  })});
+  return{coming:coming,got:got,food:food};
+}
+function slotLabel(s){
+  if(!s.exp)return 'This month';
+  var t=s.exp.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  return s.moved?t+' (the '+ordinal(s.day)+' is a Sunday)':t;
+}
+function incomeCardHtml(inc){
+  var slots=incomeSlots(inc);
+  return '<div class="card"><div class="row" onclick="openIncome(\''+inc.id+'\')" style="cursor:pointer"><div><div class="nm">'+esc(inc.n)+
+    (inc.foodOnly?'<span class="pill p-gry">Food only</span>':'')+'</div>'+
+    '<div class="mt">'+money2(inc.a)+(inc.days&&inc.days.length?' each, on the '+inc.days.map(ordinal).join(' and '):' a month')+(inc.note?' · '+esc(inc.note):'')+'</div></div></div>'+
+    slots.map(function(s){
+      var r=receivedFor(inc,s.key);
+      return r
+        ?'<div class="log-row" style="cursor:pointer" onclick="openReceived(\''+r.id+'\')"><span>'+slotLabel(s)+'</span><b style="color:var(--grow);font-weight:500">✓ Got '+money2(r.amount)+' · '+new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</b></div>'
+        :'<div class="log-row"><span>'+slotLabel(s)+'</span><button class="btn sm" style="padding:6px 12px" onclick="openReceive(\''+inc.id+'\',\''+s.key+'\')">Got it</button></div>';
+    }).join('')+'</div>';
+}
+function openReceive(srcId,key){
+  var inc=S.income.find(function(x){return x.id===srcId});if(!inc)return;
+  sheet('<div class="sh-t">'+esc(inc.n)+' came in</div><div class="sh-s">Log what actually hit your account.'+(inc.foodOnly?' Food only, so it won\'t count toward bills.':'')+'</div>'+
+    '<div class="field"><label class="f">Amount received</label><input id="rcAmt" type="number" inputmode="decimal" value="'+inc.a+'"></div>'+
+    '<div class="field"><label class="f">Date it landed</label><input id="rcDate" type="date" value="'+iso(today())+'" max="'+iso(today())+'"></div>'+
+    '<div id="rcErr" class="warnbox" style="display:none">Enter an amount greater than $0.</div>'+
+    '<button class="btn go" style="margin-top:14px" onclick="saveReceive(\''+srcId+'\',\''+key+'\')">Save</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Cancel</button>');
+}
+function saveReceive(srcId,key){
+  var inc=S.income.find(function(x){return x.id===srcId});if(!inc)return;
+  var e=document.getElementById('rcAmt'),a=parseFloat(e.value);
+  if(isNaN(a)||a<=0){e.style.borderColor='var(--bad)';document.getElementById('rcErr').style.display='block';return}
+  a=Math.round(a*100)/100;
+  var d=document.getElementById('rcDate').value||iso(today());
+  S.received.push({id:'rc'+Date.now(),srcId:srcId,slot:key,date:d,amount:a,label:inc.n,foodOnly:!!inc.foodOnly});
+  save();closeSheet();render();
+  toast(inc.foodOnly?'Logged '+money2(a)+' food benefits':'Logged '+money2(a)+' from '+inc.n+'. Pay a bill with it? Log that payment and what you owe drops.');
+}
+function openReceived(id){
+  var r=S.received.find(function(x){return x.id===id});if(!r)return;
+  sheet('<div class="sh-t">'+esc(r.label)+'</div><div class="sh-s">'+money2(r.amount)+' received '+new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+'.</div>'+
+    '<div class="tiny">Wrong amount or date? Delete it and log it again.</div>'+
+    '<button class="btn" style="margin-top:14px;background:rgba(226,75,74,.15);border-color:rgba(226,75,74,.3);color:#F09595" onclick="delReceived(\''+id+'\')">Delete this entry</button>'+
+    '<button class="btn" style="margin-top:8px" onclick="closeSheet()">Close</button>');
+}
+function delReceived(id){S.received=S.received.filter(function(x){return x.id!==id});save();closeSheet();render();toast('Removed. It shows as not received again.')}
+function receivedList(){
+  var all=S.received.map(function(r){return{date:r.date,id:r.id,label:r.label,amount:r.amount,food:r.foodOnly,kind:'rc'}})
+    .concat(S.otherIncome.map(function(o){return{date:o.date,id:o.id,label:o.label,amount:o.amount,kind:'oi'}}));
+  if(!all.length)return '<div class="mt">Nothing logged yet.</div>';
+  return all.sort(function(a,b){return a.date<b.date?1:-1}).map(function(x){
+    return '<div class="log-row"'+(x.kind==='rc'?' style="cursor:pointer" onclick="openReceived(\''+x.id+'\')"':'')+'><span>'+fmtDay(x.date)+
+      '<span class="mt" style="display:block;margin:2px 0 0">'+esc(x.label)+(x.food?' · food only':'')+'</span></span><b style="font-weight:500;color:var(--grow)">+'+money2(x.amount)+'</b></div>'}).join('');
+}
+function migrateIncome(){
+  if(S.seen&&S.seen.incomeV2)return;
+  if(!S.seen)S.seen={};
+  S.income.forEach(function(i){
+    if(!i.days){i.days=(i.id==='cash'||/assistance/i.test(i.n))?[4,19]:[]}
+    if(i.id==='cash'&&/4th and 19th/i.test(i.note||''))i.note='';
+  });
+  if(!S.income.some(function(i){return i.foodOnly})){
+    S.income.push({id:'snap',n:'Food stamps (SNAP)',a:540,days:[],foodOnly:true,note:''});
+  }
+  S.seen.incomeV2=1;
+}
+
+/* ---------- quick order check: Taz's real rule ---------- */
+function setPayMode(m){S.settings.payMode=m;save();runQuick()}
+function runQuick(){
+  var s=S.settings, mode=s.payMode||'time';
+  var mc=document.getElementById('modeChips');
+  if(mc)mc.innerHTML=['time','offer'].map(function(m){
+    return '<span class="chip'+(mode===m?' on':'')+'" style="'+(mode===m?'background:var(--grow);color:#04211a;border-color:var(--grow)':'')+'" onclick="setPayMode(\''+m+'\')">'+(m==='time'?'Earn by Time':'Per offer')+'</span>'}).join('');
+  var rl=document.getElementById('ruleLine');
+  if(rl)rl.innerHTML='Your rule: up to '+s.maxMiles+' miles, take it. Past that, only if it pays '+money(s.longMin)+' or more. <span style="text-decoration:underline;cursor:pointer" onclick="openSettings()">Change</span>';
+  var mi=parseFloat((document.getElementById('qMi')||{}).value);
+  var pay=parseFloat((document.getElementById('qPay')||{}).value);
+  var out=document.getElementById('quickOut');if(!out)return;
+  var r=quickVerdict(mi,pay,mode);
+  if(!r){out.innerHTML='<div class="card"><div class="mt">Type the miles to check it.</div></div>';return}
+  var col=r.take?'var(--grow)':'var(--bad)';
+  out.innerHTML='<div class="card" style="border-color:'+col+'66;text-align:center">'+
+    '<div style="font-size:40px;font-weight:600;color:'+col+';line-height:1.1">'+(r.take?'TAKE IT':'PASS')+'</div>'+
+    '<div class="mt" style="font-size:14px;margin-top:6px">'+r.why+'</div>'+
+    (r.detail?'<div class="mt" style="margin-top:6px">'+r.detail+'</div>':'')+'</div>';
+}
+function quickVerdict(mi,pay,mode){
+  var s=S.settings;
+  if(isNaN(mi)||mi<=0)return null;
+  var rt=Math.round(mi*2*10)/10, hasPay=!isNaN(pay)&&pay>0;
+  var detail=hasPay?'About '+rt+' miles round trip · '+money2(pay/rt)+' per mile counting the drive back':'About '+rt+' miles round trip';
+  if(mi<=s.maxMiles)return{take:true,why:'Within your '+s.maxMiles+'-mile range.',detail:detail};
+  if(hasPay&&pay>=s.longMin)return{take:true,why:'Long one, but '+money2(pay)+' clears your '+money(s.longMin)+' line.',detail:detail};
+  if(hasPay)return{take:false,why:money2(pay)+' is under your '+money(s.longMin)+' line for anything past '+s.maxMiles+' miles.',detail:detail};
+  return{take:false,why:'Past '+s.maxMiles+' miles. '+(mode==='time'?'On Earn by Time the drive back is unpaid.':'Enter the pay to check it against your '+money(s.longMin)+' line.'),detail:detail};
+}
+
+/* ---------- rest today, one tap ---------- */
+function toggleRestToday(){
+  var k=iso(today());
+  if(S.restDays[k]){delete S.restDays[k];if(S.daily[k]===0&&!S.dailySplit[k])delete S.daily[k];save();render();toast('Today is back to a regular day');return}
+  S.restDays[k]=true;if(S.daily[k]===undefined)S.daily[k]=0;save();render();
+  toast('Rest day logged. It won\'t count against you.');
+}
+
+/* ---------- earnings by app ---------- */
+var APPS=[['dd','DoorDash'],['veho','Veho'],['spark','Spark'],['uber','Uber Eats'],['other','Other']];
+function splitLine(k){
+  var sp=S.dailySplit[k];if(!sp)return '';
+  return APPS.filter(function(a){return sp[a[0]]>0}).map(function(a){return a[1]+' '+money(sp[a[0]])}).join(' · ');
+}
+function weekByApp(offsetWeeks){
+  var ws=weekStart(today());ws.setDate(ws.getDate()-7*offsetWeeks);
+  var tot={},unsplit=0,any=false;APPS.forEach(function(a){tot[a[0]]=0});
+  for(var i=0;i<7;i++){var d=new Date(ws);d.setDate(ws.getDate()+i);var k=iso(d);
+    if(S.daily[k]===undefined)continue;any=true;
+    var sp=S.dailySplit[k];
+    if(sp)APPS.forEach(function(a){tot[a[0]]+=sp[a[0]]||0});else unsplit+=S.daily[k]||0}
+  return{start:ws,tot:tot,unsplit:unsplit,any:any};
+}
+function renderAppCard(){
+  var el=document.getElementById('appCard');if(!el)return;
+  var html='';
+  [0,1].forEach(function(o){
+    var w=weekByApp(o);
+    html+='<div class="mt" style="margin:'+(o?'14px':'0')+' 0 4px;letter-spacing:.08em;text-transform:uppercase">'+(o?'Last week':'This week')+'</div>';
+    if(!w.any){html+='<div class="mt">Nothing logged.</div>';return}
+    APPS.forEach(function(a){if(w.tot[a[0]]>0)html+='<div class="log-row"><span>'+a[1]+'</span><b style="font-weight:500">'+money2(w.tot[a[0]])+'</b></div>'});
+    if(w.unsplit>0)html+='<div class="log-row"><span>Not split by app</span><b style="font-weight:500;color:var(--tx2)">'+money2(w.unsplit)+'</b></div>';
+  });
+  el.innerHTML=html;
+}
+
+/* ---------- backup nudge ---------- */
+function renderBackupNag(){
+  var el=document.getElementById('backupNag');if(!el)return;
+  var hasData=Object.keys(S.daily).length>0||S.payments.length>0;
+  var last=S.seen.lastBackup?new Date(S.seen.lastBackup):null;
+  var days=last?Math.floor((Date.now()-last.getTime())/86400000):null;
+  if(!hasData||(days!==null&&days<7)){el.innerHTML='';return}
+  el.innerHTML='<div class="card soon" style="margin-top:14px"><div class="row"><div><div class="nm">'+(last?'Last backup was '+days+' days ago':'No backup yet')+'</div>'+
+    '<div class="mt">Everything lives only on this phone. One export keeps it safe.</div></div></div>'+
+    '<div class="btnrow"><button class="btn sm" onclick="exportData()">Export backup now</button></div></div>';
 }
 
 /* ---------- SCORING ---------- */
@@ -1406,6 +1796,8 @@ function tookIt(){
   if(!(pay>0))return;
   var k=iso(today());
   S.daily[k]=(S.daily[k]||0)+pay;
+  if(S.dailySplit[k]){S.dailySplit[k].dd=Math.round(((S.dailySplit[k].dd||0)+pay)*100)/100}
+  else if(S.daily[k]===pay){S.dailySplit[k]={dd:pay}}
   S.trips.push({id:'t'+Date.now(),d:k,pay:pay,mi:mi||0,min:min||0,start:start||'',area:area||'',drop:drop||''});
   save();
   document.getElementById('scPay').value='';
@@ -1521,12 +1913,13 @@ function openCloseOut(){
   var ws=weekStart(today()),wt=weekTotal(),floor=FLOOR();
   var days='';
   for(var i=0;i<7;i++){
-    var d=new Date(ws);d.setDate(ws.getDate()+i);var v=S.daily[iso(d)];
+    var d=new Date(ws);d.setDate(ws.getDate()+i);var v=S.daily[iso(d)],rest=!!S.restDays[iso(d)];
     days+='<div class="log-row"><span>'+d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</span>'+
-      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+(v===undefined?'—':money(v))+'</b></div>';
+      (rest?'<b style="color:var(--tx2)">Rest day'+(v?' · '+money(v):'')+'</b>':
+      '<b style="color:'+(v===undefined?'var(--tx3)':v>=100?'var(--grow)':'var(--warn)')+'">'+(v===undefined?'—':money(v))+'</b>')+'</div>';
   }
   var wkStartIso=iso(ws), wkEnd=new Date(ws);wkEnd.setDate(ws.getDate()+6);var wkEndIso=iso(wkEnd);
-  var paid=S.payments.filter(function(p){return p.date>=wkStartIso&&p.date<=wkEndIso});
+  var paid=realPayments().filter(function(p){return p.date>=wkStartIso&&p.date<=wkEndIso});
   var paidTotal=0;paid.forEach(function(p){paidTotal+=p.amount});
   var needsWk=S.needs.filter(function(n){return n.date>=wkStartIso&&n.date<=wkEndIso});
   var needsTotal=0;needsWk.forEach(function(n){needsTotal+=n.amount});
@@ -1600,6 +1993,12 @@ function applyImport(raw){
   if(!S.payments)S.payments=[];
   if(!S.needs)S.needs=[];
   if(!S.otherIncome)S.otherIncome=[];
+  if(!S.contribApplied)S.contribApplied={};
+  if(!S.restDays)S.restDays={};
+  if(!S.dailySplit)S.dailySplit={};
+  if(!S.received)S.received=[];
+  migrateIncome();
+  migrateLedger();
   save();closeSheet();render();renderChips();
   toast('Restored from backup');
 }
@@ -1672,7 +2071,7 @@ function go(v){
   document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.dataset.v===v)});
   VIEWS.forEach(function(n){document.getElementById('v-'+n).classList.toggle('hide',n!==v)});
   window.scrollTo(0,0);
-  if(v==='score'){renderChips();autofillStart();runScore();setTimeout(function(){var e=document.getElementById('scPay');if(e)e.focus()},120)}
+  if(v==='score'){renderChips();autofillStart();runScore();runQuick();setTimeout(function(){var e=document.getElementById('qMi');if(e)e.focus()},120)}
 }
 document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){go(b.dataset.v)}});
 
